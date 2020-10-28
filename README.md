@@ -124,18 +124,32 @@ Este pequeno sistema foi desenvolvido para ser usado em aplicações pequenas em
 <details>
   <summary><b>Update</b></summary>
     <p>Para realizar um update com o SimpleCrudPhp, você deve chamar a função <code>update</code> passando os parametros na ordem:</p>
+  <ul>
+    <li>Nome da tabela</li>
+    <li>Colunas separada por vírgula e o <code> ? </code> </li>
+    <li>Array de valores que substituirão os <code> ? </code>./li>
+  </ul>
   <h4>Exemplo:</h4>
   <pre>    
-    
+        $crud = $this->update("example", "nm_example = ?, dt_example = ?", $data)
+            ->where("cd_example = ?", [$id])->execute();
+
+        if ($crud) {
+            return "Atualizado Com Sucesso";
+        } else {
+            return $this->getError();
+        }
   </pre>
 </details>
 
 <details>
   <summary><b>Delete</b></summary>
-    <p>Para realizar um delete com o SimpleCrudPhp, você deve chamar a função <code>delete</code> passando os parametros na ordem:</p>
+    <p>Para realizar um delete com o SimpleCrudPhp, você deve chamar a função <code>delete</code> seguida de função <code>from()</code></p>
   <h4>Exemplo:</h4>
   <pre>    
-    
+    $crud = $this->delete()->from("example")->where("cd_example = ?", [$id])->execute();
+
+    return $crud;
   </pre>
 </details>
 
