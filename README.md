@@ -66,11 +66,58 @@ Este pequeno sistema foi desenvolvido para ser usado em aplicações pequenas em
 <details>
   <summary><b>Select</b></summary>
   
-  <p>Para realizar um select com o SimpleCrudPhp, você deve chamar a função <code>select</code> passando os parametros na ordem:</p>
-  <h4>Exemplo:</h4>
+  <p>Para realizar um select com o SimpleCrudPhp, você deve chamar a função <code>select</code> passando as colunas que deseja trazer, caso não informe as colunas o valor padrão será o mesmo que <code>select * </code>. Depois de chamar função <code>select()</code> devesse chamar a função <code>from</code> em seguida.</p>
+  <h4>Exemplo sem <code>WHERE</code>:</h4>
+  <p>O <code>execute("fetchAll")</code> retorna um array (uma lista) de objetos.</p>
   <pre>    
+    $query = $this->select("qt_example as qt, nm_example as nome")
+            ->from("example")
+            ->execute("fetchAll");
+
+   return $query;
+  </pre>
+  <h4>Exemplo com <code>WHERE</code>:</h4>
+  <p>O <code>execute("fetch")</code> retorna um objeto.</p>
+  <pre>    
+    $query = $this->select("qt_example as qt, nm_example as nome")
+            ->from("example")
+            ->where("cd_example = ?", [$id])
+            ->execute("fetch");
+
+    return $query;
+  </pre>
+  <p>O <code>where</code> recebe uma <code>string</code> com as colunas separadas por vírgula, mais o <code> ? </code> que será substituido pelo valor do array (segundo parametro). </p>
+  <h5>Exemplo de <code>where</code> com mais de um parametro:</h5>
+  <pre>
+    $nome = "Fulano de Tal";
+    $idade = 24;
+    
+    $query = $this->select("ds_perfil, nm_cidade")
+            ->from("example")
+            ->where("nm_example = ? AND idade = ?", [$nome, $idade])
+            ->execute("fetch");
+            
+    // seria o mesmo que 
+    
+    $query = "select ds_perfil, nm_cidade from example 
+              where nm_example = "Fulano de Tal" AND idade = 24";
     
   </pre>
+  
+  <h4>Exemplo com mais clausulas no <b>select</b>:</h4>
+  <pre>
+  
+  $nome = "tal"
+  
+  $query = $this->select("qt_example as qt, nm_example as nome")
+              ->from("example")
+              ->where(""nm_example LIKE (?)", ["%{$nome}%"])
+              ->order("dt_example", "DESC")
+              ->limit(0, 10)
+              ->execute("fetch");  
+              
+              
+   </pre>
 
 </details>
 
