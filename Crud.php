@@ -129,6 +129,22 @@ abstract class Crud
     }
 
     /**
+     * @param name
+     * @param params
+     * @return Crud
+     */
+    protected function call(string $name, array $params = []): ?Crud
+    {
+        if(!empty($params)) {
+            foreach ($params as $param) {
+                array_push($this->terms, $param);
+            }
+        }  
+        $this->query .= " CALL $name";
+        return $this;
+    }
+
+    /**
      * @param fetch fetch (retorna um objeto), fetchAll (retorna um array), rowCount (numero de linhas afetadas)
      * @param cleanQuery 
      * @return mixed
