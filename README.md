@@ -127,7 +127,7 @@ Este pequeno sistema foi desenvolvido para ser usado em aplicações pequenas em
   <ul>
     <li>Nome da tabela</li>
     <li>Colunas separada por vírgula e o <code> ? </code> </li>
-    <li>Array de valores que substituirão os <code> ? </code>./li>
+    <li>Array de valores que substituirão os <code> ? </code></li>
   </ul>
   <h4>Exemplo:</h4>
   <pre>    
