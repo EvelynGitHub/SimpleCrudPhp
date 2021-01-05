@@ -16,25 +16,16 @@ abstract class Crud
     /**
      * @param table
      * @param data
-     * @param columns
      * @return Crud
      */
-    protected function insert(string $table, array $data, string $columns = ""): ?Crud
+    protected function insert(string $table, array $data): ?Crud
     {
-        $amount = "";
+        $columns = implode(",", array_keys($data));
+        $amount = implode(',', array_fill(0, count($data), '?'));
 
-        foreach ($data as $value) {
-            $amount .= "?, ";
-            array_push($this->terms, $value);
-        }
+        $this->addTerms($data);
 
-        $amount = substr($amount, 0, -2);
-
-        if ($columns) {
-            $this->query .= " INSERT INTO $table ($columns) VALUES ($amount)";
-        } else {
-            $this->query .= " INSERT INTO $table VALUES ($amount)";
-        }
+        $this->query .= " INSERT INTO $table ($columns) VALUES ($amount)";
 
         return $this;
     }
@@ -61,9 +52,7 @@ abstract class Crud
     {
         $this->query .= " UPDATE $table SET $columns";
 
-        foreach ($data as $value) {
-            array_push($this->terms, $value);
-        }
+        $this->addTerms($data);
 
         return $this;
     }
@@ -95,11 +84,11 @@ abstract class Crud
      */
     protected function where(string $conditions, array $values = []): ?Crud
     {
-        if(!empty($values)) {
+        if (!empty($values)) {
             foreach ($values as $value) {
                 array_push($this->terms, $value);
             }
-        }        
+        }
         $this->query .= " WHERE $conditions";
         return $this;
     }
@@ -135,11 +124,11 @@ abstract class Crud
      */
     protected function call(string $name, array $params = []): ?Crud
     {
-        if(!empty($params)) {
+        if (!empty($params)) {
             foreach ($params as $param) {
                 array_push($this->terms, $param);
             }
-        }  
+        }
         $this->query .= " CALL $name";
         return $this;
     }
@@ -226,5 +215,12 @@ abstract class Crud
     protected static function getError()
     {
         return self::$error;
+    }
+
+    private function addTerms(array $data)
+    {
+        foreach ($data as $value) {
+            array_push($this->terms, $value);
+        }
     }
 }
