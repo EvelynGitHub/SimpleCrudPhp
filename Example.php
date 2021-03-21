@@ -15,14 +15,17 @@ class Example extends Crud
         }
     }
 
-    public function showExample(int $id)
+    public function showExample()
     {
-        $query = $this->select("qt_example as qt, nm_example as nome")
-            ->from("example")
-            ->where("cd_example = ?", [$id])
-            ->execute("fetchAll");
+        try {
+            $query = $this->select()
+                ->from("teste")
+                ->execute("fetchAll");
 
-        return $query;
+            return $query;
+        } catch (\Throwable $th) {
+            return $th->getMessage();
+        }
     }
 
     public function updateExample(int $id, array $data)
