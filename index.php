@@ -1,11 +1,13 @@
 <?php
 
-require './Crud.php';
-require './Connection.php';
-require './Example.php';
 require './Config.php';
+require './ConnectionException.php';
+require './Connection.php';
+require './Crud.php';
+require './Example.php';
 
-$show = (new Example())->showExample(1);
+echo "<h1>INDEX de Exemplo</h1>";
 
-echo $show;
+$show = (new Example())->showExample();
 
+var_dump($show);
