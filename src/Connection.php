@@ -1,6 +1,11 @@
 <?php
 
-//use PDOException;
+namespace SimplePhp\SimpleCrud;
+
+use Exception;
+use PDO;
+use PDOException;
+
 class Connection
 {
     private static $instance;
@@ -8,7 +13,7 @@ class Connection
 
     public static function getInstance()
     {
-        if(empty(self::$instance)) {
+        if (empty(self::$instance)) {
             try {
 
                 self::$instance = new PDO(
@@ -17,9 +22,13 @@ class Connection
                     DATABASE["passwd"],
                     DATABASE["options"]
                 );
-
-            } catch(PDOException $exception) {
+            } catch (PDOException $exception) {
                 self::$error = $exception;
+
+                throw new ConnectionException(
+                    $exception->getMessage(),
+                    $exception->getCode()
+                );
             }
         }
 

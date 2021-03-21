@@ -1,6 +1,6 @@
 <?php
 
-use Source\Crud\Crud;
+use SimplePhp\SimpleCrud\Crud;
 
 class Example extends Crud
 {

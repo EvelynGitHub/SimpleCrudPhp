@@ -1,10 +1,11 @@
 <?php
 
-namespace Source\Crud;
+namespace SimplePhp\SimpleCrud;
 
-use Connection;
 use Exception;
 use PDO;
+use PDOException;
+use SimplePhp\SimpleCrud\Connection;
 
 abstract class Crud
 {
@@ -171,6 +172,12 @@ abstract class Crud
             } else {
                 return false;
             }
+        } catch (ConnectionException $con) {
+            self::$error = $con->getError();
+            throw new Exception("Falha ao conectar com o Banco de Dados: " . $con->getMessage());
+        } catch (PDOException $e) {
+            self::$error = $e->getMessage();
+            throw new PDOException('Falha ao executar:' . self::$error);
         } catch (Exception $e) {
             self::$error = $e;
         }

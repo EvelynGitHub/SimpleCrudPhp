@@ -1,0 +1,27 @@
+{
+    "name": "simplephp/simple-crud",
+    "description": "pacote para criação de CRUD simples, genérico e flexível em PHP.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Evelyn",
+            "email": "evelynbrandao15@gmail.com",
+            "role": "Developer"
+        },
+        {
+            "name": "Rodrigo Yuri",
+            "email": "rodrigo33996@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {
+            "SimplePhp\\SimpleCrud\\": "src"
+        },
+        "files": [
+            "./src/Config.php"
+        ]
+    },
+    "require": {}
+}
