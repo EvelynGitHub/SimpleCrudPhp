@@ -18,10 +18,7 @@
     "autoload": {
         "psr-4": {
             "SimplePhp\\SimpleCrud\\": "src"
-        },
-        "files": [
-            "./src/Config.php"
-        ]
+        }
     },
     "require": {}
 }
