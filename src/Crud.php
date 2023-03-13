@@ -15,8 +15,8 @@ abstract class Crud
 
 
     /**
-     * @param table
-     * @param data
+     * @param $table
+     * @param $data
      * @return Crud
      */
     protected function insert(string $table, array $data): ?Crud
@@ -32,7 +32,7 @@ abstract class Crud
     }
 
     /**
-     * @param columns $columns = "id, nome, numero...etc";
+     * @param $columns $columns = "id, nome, numero...etc";
      * Monta a primeira parte de um clausula SELECT 
      */
     protected function select(string $columns = "*"): ?Crud
@@ -44,9 +44,9 @@ abstract class Crud
 
     /**
      * Atualiza o registro especificado
-     * @param table nome da tabela que deseja atualizar
-     * @param columns colunas para atualizar. Ex: "nmlogin = ?, cdpass=? " 
-     * @param data valores para substituirem os '?' devem ser colocados na mesma ordem
+     * @param $table nome da tabela que deseja atualizar
+     * @param $columns colunas para atualizar. Ex: "nmlogin = ?, cdpass=? " 
+     * @param $data valores para substituirem os '?' devem ser colocados na mesma ordem
      * @return Crud
      */
     protected function update(string $table, string $columns, array $data): ?Crud
@@ -68,7 +68,7 @@ abstract class Crud
     }
 
     /**
-     * @param table
+     * @param $table
      * @return Crud
      */
     protected function from(string $table): ?Crud
@@ -79,8 +79,8 @@ abstract class Crud
     }
 
     /**
-     * @param conditions column1, column2 || LIKE, AND, OR
-     * @param values
+     * @param $conditions column1, column2 || LIKE, AND, OR
+     * @param $values
      * @return Crud
      */
     protected function where(string $conditions, array $values = []): ?Crud
@@ -96,8 +96,8 @@ abstract class Crud
 
 
     /**
-     * @param columns "column1, column2"
-     * @param order "ASC|DESC"
+     * @param $columns "column1, column2"
+     * @param $order "ASC|DESC"
      * @return Crud
      */
     protected function order(string $columns, string $order = "ASC"): ?Crud
@@ -108,8 +108,8 @@ abstract class Crud
     }
 
     /**
-     * @param start 0
-     * @param end 10
+     * @param $start 0
+     * @param $end 10
      * @return Crud
      */
     protected function limit(int $start = 0, int $end = 10): ?Crud
@@ -119,8 +119,8 @@ abstract class Crud
     }
 
     /**
-     * @param name
-     * @param params
+     * @param $name
+     * @param $params
      * @return Crud
      */
     protected function call(string $name, array $params = []): ?Crud
@@ -135,8 +135,8 @@ abstract class Crud
     }
 
     /**
-     * @param fetch fetch (retorna um objeto), fetchAll (retorna um array), rowCount (numero de linhas afetadas)
-     * @param cleanQuery 
+     * @param $fetch fetch (retorna um objeto), fetchAll (retorna um array), rowCount (numero de linhas afetadas)
+     * @param $cleanQuery 
      * @return mixed
      */
     protected function execute(string $fetch = "", bool $cleanQuery = true)
@@ -184,7 +184,7 @@ abstract class Crud
     }
 
     /**
-     * @param value
+     * @param $value
      * @return PDO::PARAM_* 
      */
     private function bindType($value)
