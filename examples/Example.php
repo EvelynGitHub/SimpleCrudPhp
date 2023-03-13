@@ -13,7 +13,7 @@ class Example
 
     public function insertExample(array $data = null)
     {
-        $query = $this->crud->insert("example", $data, "qt_example, nm_example")->execute();
+        $query = $this->crud->insert("example", $data)->execute();
 
         if ($query) {
             return "example cadastrado";
