@@ -2,22 +2,29 @@
 
 use SimplePhp\SimpleCrud\Crud;
 
-class Example extends Crud
+class Example
 {
+    private Crud $crud;
+
+    public function __construct(Crud $crud)
+    {
+        $this->crud = $crud;
+    }
+
     public function insertExample(array $data = null)
     {
-        $query = $this->insert("example", $data, "qt_example, nm_example")->execute();
+        $query = $this->crud->insert("example", $data, "qt_example, nm_example")->execute();
 
         if ($query) {
             return "example cadastrado";
         } else {
-            return $this->getError();
+            return $this->crud->getError();
         }
     }
 
     public function showExample(int $id)
     {
-        $query = $this->select("qt_example as qt, nm_example as nome")
+        $query = $this->crud->select("qt_example as qt, nm_example as nome")
             ->from("example")
             ->where("cd_example = ?", [$id])
             ->execute("fetchAll");
@@ -27,19 +34,19 @@ class Example extends Crud
 
     public function updateExample(int $id, array $data)
     {
-        $crud = $this->update("example", "nm_example = ?, dt_example = ?", $data)
+        $crud = $this->crud->update("example", "nm_example = ?, dt_example = ?", $data)
             ->where("cd_example = ?", [$id])->execute();
 
         if ($crud) {
             return "Atualizado Com Sucesso";
         } else {
-            return $this->getError();
+            return $this->crud->getError();
         }
     }
 
     public function deleteExample($id)
     {
-        $crud = $this->delete()->from("example")->where("cd_example = ?", [$id])->execute();
+        $crud = $this->crud->delete()->from("example")->where("cd_example = ?", [$id])->execute();
 
         return $crud;
     }
@@ -47,7 +54,7 @@ class Example extends Crud
     public function filterExample($data = array())
     {
 
-        $queryFilter = parent::select("cd_example, DATE_FORMAT(dt_example, '%d/%m/%Y') as dt_example")
+        $queryFilter = $this->crud->select("cd_example, DATE_FORMAT(dt_example, '%d/%m/%Y') as dt_example")
             ->from("example");
 
         $queryFilter = $queryFilter
@@ -61,7 +68,7 @@ class Example extends Crud
             ->limit(0, 10)
             ->execute("fetchAll");
 
-        $totalRegisterInTable = parent::select("COUNT(*) as count")
+        $totalRegisterInTable = $this->crud->select("COUNT(*) as count")
             ->from("example")
             ->execute("fetch")
             ->count;

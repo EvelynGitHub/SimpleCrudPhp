@@ -7,7 +7,7 @@ use PDO;
 use PDOException;
 use SimplePhp\SimpleCrud\Connection;
 
-abstract class Crud
+class Crud
 {
     private $query = "";
     private $terms = [];
