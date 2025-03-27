@@ -1,6 +1,8 @@
 <?php
 
-namespace SimplePhp\SimpleCrud;
+declare(strict_types=1);
+
+namespace SimplePhp\SimpleCrud\Infra\Database;
 
 use Exception;
 
@@ -13,7 +15,7 @@ class ConnectionException extends Exception
   }
 
   // string personalizada para representação do objeto
-  public function __toString()
+  public function __toString(): string
   {
     return ": [{$this->code}]: {$this->message}\n";
   }

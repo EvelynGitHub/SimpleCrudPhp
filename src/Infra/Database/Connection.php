@@ -1,16 +1,23 @@
 <?php
 
-namespace SimplePhp\SimpleCrud;
+declare(strict_types=1);
+
+namespace SimplePhp\SimpleCrud\Infra\Database;
 
 use PDO;
 use PDOException;
+use SimplePhp\SimpleCrud\Core\Interfaces\DatabaseConnectionInterface;
 
-class Connection
+class Connection implements DatabaseConnectionInterface
 {
-  private static $instance;
+  private static PDO $instance;
   private static $error;
 
-  public static function getInstance()
+  // private function __construct()
+  // {
+  // }
+
+  public static function getInstance(): PDO
   {
     if (empty(self::$instance)) {
       try {
