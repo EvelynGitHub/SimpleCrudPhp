@@ -32,7 +32,7 @@ class Crud
 
   /**
    * @param $columns $columns = "id, nome, numero...etc";
-   * Monta a primeira parte de um clausula SELECT 
+   * Monta a primeira parte de um clausula SELECT
    */
   protected function select(string $columns = "*"): ?Crud
   {
@@ -41,16 +41,16 @@ class Crud
     return $this;
   }
 
-  /**
-   * Atualiza o registro especificado
-   * @param $table nome da tabela que deseja atualizar
-   * @param $columns colunas para atualizar. Ex: "nmlogin = ?, cdpass=? " 
-   * @param $data valores para substituirem os '?' devem ser colocados na mesma ordem
-   * @return Crud
-   */
-  protected function update(string $table, string $columns, array $data): ?Crud
-  {
-    $this->query .= " UPDATE $table SET $columns";
+    /**
+     * Atualiza o registro especificado
+     * @param table nome da tabela que deseja atualizar
+     * @param columns colunas para atualizar. Ex: "nmlogin = ?, cdpass=? "
+     * @param data valores para substituirem os '?' devem ser colocados na mesma ordem
+     * @return Crud
+     */
+    protected function update(string $table, string $columns, array $data): ?Crud
+    {
+        $this->query .= " UPDATE $table SET $columns";
 
     $this->addTerms($data);
 
@@ -93,7 +93,8 @@ class Crud
     return $this;
   }
 
-  /** 
+
+  /**
    * @param $query "SELECT * FROM foo WHERE foo_id = ?"
    * @param $values "[1]"
    * @return Crud
@@ -110,16 +111,19 @@ class Crud
     return $this;
   }
 
-  /**
-   * @param $columns "column1, column2"
-   * @param $order "ASC|DESC"
-   * @return Crud
-   */
-  protected function order(string $columns, string $order = "ASC"): ?Crud
-  {
-    $this->query .= " ORDER BY $columns $order ";
-    return $this;
-  }
+
+    /**
+     * @param columns "column1, column2"
+     * @param order "ASC|DESC"
+     * @return Crud
+     */
+    protected function order(string $columns, string $order = "ASC"): ?Crud
+    {
+        $this->query .= " ORDER BY $columns $order ";
+        // $this->query .= " ORDER BY $columns ";
+        return $this;
+    }
+
 
   /**
    * @param $start 0
@@ -150,7 +154,7 @@ class Crud
 
   /**
    * @param $fetch fetch (retorna um objeto), fetchAll (retorna um array), rowCount (numero de linhas afetadas)
-   * @param $cleanQuery 
+   * @param $cleanQuery
    * @return mixed
    */
   protected function execute(string $fetch = "", bool $cleanQuery = true)
@@ -179,6 +183,8 @@ class Crud
             $rs = $stmt->fetchAll(PDO::FETCH_ASSOC);
           } else if ($fetch == "rowCount") {
             $rs = $stmt->rowCount();
+          } else if ($fetch == "lastId") {
+            $rs = $conn->lastInsertId();
           }
           return $rs;
         }
@@ -199,7 +205,7 @@ class Crud
 
   /**
    * @param $value
-   * @return PDO::PARAM_* 
+   * @return PDO::PARAM_*
    */
   private function bindType($value)
   {
@@ -222,26 +228,37 @@ class Crud
     return $var_type;
   }
 
-  /**
-   * @return mixed
-   */
-  protected function getQuery()
-  {
-    return $this->query;
-  }
+    // protected function query(string $sql, array $data = []): ?Crud
+    // {
+    //     $this->query .= $sql;
 
-  /**
-   * @return mixed
-   */
-  protected static function getError()
-  {
-    return self::$error;
-  }
+    //     $this->addTerms($data);
 
-  private function addTerms(array $data)
-  {
-    foreach ($data as $value) {
-      array_push($this->terms, $value);
+    //     return $this;
+    // }
+
+
+    /**
+     * @return mixed
+     */
+    protected function getQuery()
+    {
+        return $this->query;
+    }
+
+    /**
+     * @return mixed
+     */
+    protected static function getError()
+    {
+        return self::$error;
+    }
+
+    private function addTerms(array $data)
+    {
+        foreach ($data as $value) {
+            array_push($this->terms, $value);
+        }
     }
   }
-}
+
