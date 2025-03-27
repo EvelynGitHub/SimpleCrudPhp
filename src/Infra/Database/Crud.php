@@ -42,7 +42,7 @@ class Crud
 	public static function insert(string $table, array $data): self
 	{
 		self::init();
-		self::$queryBuilder->insert($table, $data)->getQuery();
+		self::$queryBuilder->insert($table, $data);
 
 		return new self;
 	}
@@ -78,11 +78,11 @@ class Crud
 	 * @param $columns $columns = "id, nome, numero...etc";
 	 * Monta a primeira parte de um clausula SELECT
 	 */
-	public static function select(string $columns = "*"): ?self
+	public static function select(string $columns = "*"): self
 	{
 		// $this->query .= " SELECT $columns";
 		self::init();
-		self::$queryBuilder->select($columns)->getQuery();
+		self::$queryBuilder->select($columns);
 
 		// return $this;
 		return new self;
@@ -93,10 +93,9 @@ class Crud
 	 * @param string $table
 	 * @return Crud
 	 */
-	protected function from(string $table): ?Crud
+	public function from(string $table): ?Crud
 	{
-		$this->query .= " FROM $table";
-
+		self::$queryBuilder->from($table);
 		return $this;
 	}
 
@@ -105,14 +104,15 @@ class Crud
 	 * @param $values
 	 * @return Crud
 	 */
-	protected function where(string $conditions, array $values = []): ?Crud
+	public function where(string $conditions, array $values = []): ?Crud
 	{
 		if (!empty($values)) {
 			foreach ($values as $value) {
 				array_push($this->terms, $value);
 			}
 		}
-		$this->query .= " WHERE $conditions";
+
+		self::$queryBuilder->where($conditions);
 		return $this;
 	}
 
@@ -286,10 +286,12 @@ class Crud
 
 	public function getSQL()
 	{
-		return [
-			'SQL CRUD' => $this->query,
-			'SQL QB' => self::$queryBuilder->getQuery(),
-		];
+		// return [
+		// 	'SQL CRUD' => $this->query,
+		// 	'SQL QB' => self::$queryBuilder->getQuery(),
+		// ];
+
+		return 'SQL QB:' . self::$queryBuilder->getQuery();
 	}
 }
 

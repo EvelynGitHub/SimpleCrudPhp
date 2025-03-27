@@ -11,7 +11,12 @@ class QueryBuilder
 
     public function select(string $columns): void
     {
-        $this->query = " SELECT $columns";
+        $this->query .= " SELECT $columns";
+    }
+
+    public function from(string $table): void
+    {
+        $this->query .= " FROM $table";
     }
 
     public function insert(string $table, array $data): self

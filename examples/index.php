@@ -26,9 +26,12 @@ ini_set('display_startup_errors', 1);
 
 try {
 
-    $crud = Crud::insert("oi", ["nome" => "Aqui"])->getSQL();
+    // $crud = Crud::insert("oi", ["nome" => "Aqui"])->getSQL();
 
-
+    $select = Crud::select("nome, id")
+        ->from("pessoa")
+        ->where("nome = :nome AND id = ?", ["nome" => "Rodrigo", 123])
+        ->getSQL();
 
 } catch (\Throwable $th) {
     echo $th->getMessage();
@@ -38,5 +41,5 @@ try {
 $show = "Teste";
 
 echo "<pre>";
-var_dump($crud);
+var_dump($select);
 
