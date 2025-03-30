@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace SimpleCrudPhp\Core\UseCase;
+namespace SimplePhp\SimpleCrud\Core\UseCases;
 
 use PDO;
 use SimplePhp\SimpleCrud\Core\Interfaces\DatabaseConnectionInterface;

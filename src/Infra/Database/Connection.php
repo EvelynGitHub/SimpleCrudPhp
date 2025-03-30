@@ -22,8 +22,14 @@ class Connection implements DatabaseConnectionInterface
     if (empty(self::$instance)) {
       try {
 
+        $database = DATABASE["driver"] . ":host=" . DATABASE["host"] . ";dbname=" . DATABASE["dbname"] . ";port=" . DATABASE["port"];
+
+        if (DATABASE["driver"] == "sqlite") {
+          $database = 'sqlite:' . DATABASE['dbname'] . ".sqlite";
+        }
+
         self::$instance = new PDO(
-          DATABASE["driver"] . ":host=" . DATABASE["host"] . ";dbname=" . DATABASE["dbname"] . ";port=" . DATABASE["port"],
+          $database,
           DATABASE["username"],
           DATABASE["passwd"],
           DATABASE["options"]

@@ -8,6 +8,9 @@ require __DIR__ . "/../vendor/autoload.php";
 use ExamplesPhp\MyCustomQueryExample;
 use SimplePhp\SimpleCrud\Core\Entity\QueryBuilder;
 use SimplePhp\SimpleCrud\Infra\Database\Crud;
+use SimplePhp\SimpleCrud\Infra\Database\Crud2;
+use SimplePhp\SimpleCrud\Infra\Database\Migrations;
+use SimplePhp\SimpleCrud\Infra\Database\Seeds;
 
 
 error_reporting(E_ALL);
@@ -15,15 +18,15 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
 
-// require_once __DIR__ . "/../src/Config.php";
-// require_once __DIR__ . "/../src/ConnectionException.php";
-// require_once __DIR__ . "/../src/Infra/Database/Connection.php";
-// require_once __DIR__ . "/../src/Infra/Database/Crud.php";
-// require_once __DIR__ . "/Example.php";
+// ### Executando as Migrations ###
+
+Migrations::run(__DIR__ . '/migrations');
 
 
-// $crud = new Crud();
-// $show = (new Example($crud))->showExample(1);
+// ### Executando as Seeds ###
+
+// Seeds::run(__DIR__ . '/seeds');
+
 
 try {
 
@@ -34,19 +37,22 @@ try {
     //     ->where("nome = :nome AND id = ?", ["nome" => "Rodrigo", 123])
     //     ->getSQL();
 
-    $subSubQuery = Crud::select("id")
-        ->from("transactions")
-        ->where("status = ?", ["approved"]);
+    // $subSubQuery = Crud::select("id")
+    //     ->from("transactions")
+    //     ->where("status = ?", ["approved"]);
 
-    $subQuery = Crud::select("user_id")
-        ->from("orders")
-        ->where("transaction_id IN (?)", [$subSubQuery]);
+    // $subQuery = Crud::select("user_id")
+    //     ->from("orders")
+    //     ->where("transaction_id IN (?)", [$subSubQuery]);
 
-    $query = Crud::select("name")
-        ->from("users")
-        ->where("id IN (?)", [$subQuery]);
+    // $query = Crud::select("name")
+    //     ->from("users")
+    //     ->where("id IN (?)", [$subQuery]);
+
+    $query = Crud2::select('id')->from('usuarios');
 
     $select = $query->getQuery();
+
 } catch (\Throwable $th) {
     echo $th->getMessage();
     echo PHP_EOL;
@@ -54,11 +60,14 @@ try {
 
 
 echo "<pre>";
-var_dump($select);
+var_dump('SELECT ', $select);
+
+
+var_dump("Execute: ", $select->execute());
 
 
 
-// die();
+die();
 
 
 // ### Consultas personalizadas pelo usuário do pacote ###
