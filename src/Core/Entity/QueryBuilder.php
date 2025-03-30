@@ -4,19 +4,119 @@ declare(strict_types=1);
 
 namespace SimplePhp\SimpleCrud\Core\Entity;
 
+use SimplePhp\SimpleCrud\Core\Interfaces\CustomQuery;
+
+
 
 class QueryBuilder
 {
-    private string $query = '';
+    protected static $instance = null;
+    protected string $query;
+    protected array $params = [];
+    private static array $customQueries = [];
 
-    public function select(string $columns): void
+
+    /**
+     * Impedindo new QueryBuilder fora da própria classe
+     */
+    private function __construct()
     {
-        $this->query .= " SELECT $columns";
     }
 
-    public function from(string $table): void
+    /**
+     * Utilizando padrão Singleton
+     * @return QueryBuilder
+     */
+    public static function getInstance()
+    {
+        if (!self::$instance) {
+            self::$instance = new self();
+        }
+        // return self::$instance;
+
+
+        // return self::$instance->reset();
+        self::$instance = new self();
+
+        return self::$instance;
+    }
+
+    private static function newInstance(): QueryBuilder
+    {
+        return new self();
+    }
+
+    public function reset(): self
+    {
+        $this->query = "";
+        $this->params = [];
+        return $this;
+    }
+
+    public static function registerQuery(string $name, CustomQuery $queryInstance): void
+    {
+        self::$customQueries[$name] = $queryInstance;
+    }
+
+    public function customQuery(string $name, array $params = []): self
+    {
+        if (!isset(self::$customQueries[$name])) {
+            throw new \Exception("Consulta '$name' não registrada.");
+        }
+
+        $queryInstance = clone self::$customQueries[$name]; // Clonamos para evitar alterar a instância global
+        $queryInstance->setParams($params);
+
+        $this->query = $queryInstance->apply();
+        $this->params = $queryInstance->getParams();
+        return $this;
+    }
+
+
+    // public function select(string $columns): void
+    // {
+    //     $this->query .= " SELECT $columns";
+    // }
+    public function select(...$columns): QueryBuilder
+    {
+        $columns = implode(", ", $columns);
+        $this->query = "SELECT $columns";
+        return $this;
+    }
+
+
+    public function from(string $table): QueryBuilder
     {
         $this->query .= " FROM $table";
+        return $this;
+    }
+
+    public function join($table, $onCondition): QueryBuilder
+    {
+        $this->query .= " JOIN $table ON $onCondition";
+        return $this;
+    }
+
+    public function where($condition, $params = [])
+    {
+        foreach ($params as &$param) {
+            if ($param instanceof QueryBuilder) {
+                // $subQuery = self::newInstance()
+                //     // ->select($params->query) // Copia a query sem afetar a principal
+                //     ->getQuery();
+                // $condition = str_replace("?", "($subQuery)", $condition);
+
+                $condition = str_replace("?", "(" . $param->getQuery() . ")", $condition);
+                $this->params = array_merge($this->params, $param->getParams());
+
+
+            } else {
+                $this->params = array_merge($this->params, $params);
+            }
+        }
+        // $this->query .= " WHERE " . vsprintf(str_replace("?", "%s", $condition), $params);
+        $this->query .= " WHERE $condition";
+        return $this;
     }
 
     public function insert(string $table, array $data): self
@@ -35,6 +135,26 @@ class QueryBuilder
         return $this;
     }
 
+    public function insertSelect($table)
+    {
+        $this->query = "INSERT INTO $table";
+        return $this;
+    }
+
+    public function columns(...$columns)
+    {
+        $this->query .= " (" . implode(", ", $columns) . ")";
+        return $this;
+    }
+
+    public function selectQuery(QueryBuilder $subQuery)
+    {
+        $this->query .= " " . $subQuery->getQuery();
+        $this->params = array_merge($this->params, $subQuery->getParams());
+        return $this;
+    }
+
+
     public function update(string $table, string $columns): self
     {
         // $set = implode(', ', array_map(fn($k, $v) => "$k = '$v'", array_keys($data), $data));
@@ -51,285 +171,14 @@ class QueryBuilder
         $this->query = "DELETE FROM $table";
     }
 
-    public function where(string $condition): void
-    {
-        // $this->query .= " WHERE $condition";
-
-        if (!empty($values)) {
-            foreach ($values as $value) {
-                array_push($this->terms, $value);
-            }
-        }
-        $this->query .= " WHERE $condition";
-        // return $this;
-    }
-
     public function getQuery(): string
     {
         return $this->query;
     }
+
+    public function getParams(): array
+    {
+        return $this->params;
+    }
 }
-
-
-
-// namespace SimplePhp\SimpleCrud\Infra\Database;
-
-// use Exception;
-// use PDO;
-// use PDOException;
-
-// class Crud
-// {
-//   private $query = "";
-//   private $terms = [];
-//   private static $error;
-
-//   /**
-//    * @param $table
-//    * @param $data
-//    * @return Crud
-//    */
-//   protected function insert(string $table, array $data): ?Crud
-//   {
-//     $columns = implode(",", array_keys($data));
-//     $amount = implode(',', array_fill(0, count($data), '?'));
-
-//     $this->addTerms($data);
-
-//     $this->query .= " INSERT INTO $table ($columns) VALUES ($amount)";
-
-//     return $this;
-//   }
-
-//   /**
-//    * @param $columns $columns = "id, nome, numero...etc";
-//    * Monta a primeira parte de um clausula SELECT
-//    */
-//   protected function select(string $columns = "*"): ?Crud
-//   {
-//     $this->query .= " SELECT $columns";
-
-//     return $this;
-//   }
-
-//   /**
-//    * Atualiza o registro especificado
-//    * @param string $table nome da tabela que deseja atualizar
-//    * @param string $columns colunas para atualizar. Ex: "nmlogin = ?, cdpass=? "
-//    * @param array $data valores para substituirem os '?' devem ser colocados na mesma ordem
-//    * @return Crud
-//    */
-//   protected function update(string $table, string $columns, array $data): ?Crud
-//   {
-//     $this->query .= " UPDATE $table SET $columns";
-
-//     $this->addTerms($data);
-
-//     return $this;
-//   }
-
-//   /**
-//    * @return Crud
-//    */
-//   protected function delete(): ?Crud
-//   {
-//     $this->query .= " DELETE";
-//     return $this;
-//   }
-
-//   /**
-//    * @param string $table
-//    * @return Crud
-//    */
-//   protected function from(string $table): ?Crud
-//   {
-//     $this->query .= " FROM $table";
-
-//     return $this;
-//   }
-
-//   /**
-//    * @param $conditions column1, column2 || LIKE, AND, OR
-//    * @param $values
-//    * @return Crud
-//    */
-//   protected function where(string $conditions, array $values = []): ?Crud
-//   {
-//     if (!empty($values)) {
-//       foreach ($values as $value) {
-//         array_push($this->terms, $value);
-//       }
-//     }
-//     $this->query .= " WHERE $conditions";
-//     return $this;
-//   }
-
-
-//   /**
-//    * @param $query "SELECT * FROM foo WHERE foo_id = ?"
-//    * @param $values "[1]"
-//    * @return Crud
-//    */
-//   protected function query(string $query, array $values = []): ?Crud
-//   {
-//     $this->query = $query;
-
-//     if (!empty($values)) {
-//       foreach ($values as $value) {
-//         array_push($this->terms, $value);
-//       }
-//     }
-//     return $this;
-//   }
-
-
-//   /**
-//    * @param string $columns "column1, column2"
-//    * @param string $order "ASC|DESC"
-//    * @return Crud
-//    */
-//   protected function order(string $columns, string $order = "ASC"): ?Crud
-//   {
-//     $this->query .= " ORDER BY $columns $order ";
-//     // $this->query .= " ORDER BY $columns ";
-//     return $this;
-//   }
-
-
-//   /**
-//    * @param $start 0
-//    * @param $end 10
-//    * @return Crud
-//    */
-//   protected function limit(int $start = 0, int $end = 10): ?Crud
-//   {
-//     $this->query .= " LIMIT $start, $end";
-//     return $this;
-//   }
-
-//   /**
-//    * @param $name
-//    * @param $params
-//    * @return Crud
-//    */
-//   protected function call(string $name, array $params = []): ?Crud
-//   {
-//     if (!empty($params)) {
-//       foreach ($params as $param) {
-//         array_push($this->terms, $param);
-//       }
-//     }
-//     $this->query .= " CALL $name";
-//     return $this;
-//   }
-
-//   /**
-//    * @param $fetch fetch (retorna um objeto), fetchAll (retorna um array), rowCount (numero de linhas afetadas)
-//    * @param $cleanQuery
-//    * @return mixed
-//    */
-//   protected function execute(string $fetch = "", bool $cleanQuery = true)
-//   {
-//     try {
-
-//       $conn = Connection::getInstance();
-
-//       $stmt = $conn->prepare($this->query);
-
-//       foreach ($this->terms as $key => $val) {
-//         $stmt->bindValue($key + 1, $val, $this->bindType($val));
-//       }
-
-//       if ($cleanQuery) {
-//         $this->query = "";
-//         $this->terms = [];
-//       }
-
-//       if ($stmt->execute()) {
-
-//         if ($fetch != "") {
-//           if ($fetch == "fetch") {
-//             $rs = $stmt->fetch(PDO::FETCH_OBJ);
-//           } else if ($fetch == "fetchAll") {
-//             $rs = $stmt->fetchAll(PDO::FETCH_ASSOC);
-//           } else if ($fetch == "rowCount") {
-//             $rs = $stmt->rowCount();
-//           } else if ($fetch == "lastId") {
-//             $rs = $conn->lastInsertId();
-//           }
-//           return $rs;
-//         }
-//         return true;
-//       } else {
-//         return false;
-//       }
-//     } catch (ConnectionException $con) {
-//       self::$error = $con->getError();
-//       throw new Exception("Falha ao conectar com o Banco de Dados: " . $con->getMessage());
-//     } catch (PDOException $e) {
-//       self::$error = $e->getMessage();
-//       throw new PDOException('Falha ao executar:' . self::$error);
-//     } catch (Exception $e) {
-//       self::$error = $e;
-//     }
-//   }
-
-//   /**
-//    * @param $value
-//    * @return PDO::PARAM_*
-//    */
-//   private function bindType($value)
-//   {
-//     $var_type = null;
-
-//     switch (true) {
-//       case is_bool($value):
-//         $var_type = PDO::PARAM_BOOL;
-//         break;
-//       case is_int($value):
-//         $var_type = PDO::PARAM_INT;
-//         break;
-//       case is_null($value):
-//         $var_type = PDO::PARAM_NULL;
-//         break;
-//       default:
-//         $var_type = PDO::PARAM_STR;
-//     }
-
-//     return $var_type;
-//   }
-
-//   // protected function query(string $sql, array $data = []): ?Crud
-//   // {
-//   //     $this->query .= $sql;
-
-//   //     $this->addTerms($data);
-
-//   //     return $this;
-//   // }
-
-
-//   /**
-//    * @return mixed
-//    */
-//   protected function getQuery()
-//   {
-//     return $this->query;
-//   }
-
-//   /**
-//    * @return mixed
-//    */
-//   protected static function getError()
-//   {
-//     return self::$error;
-//   }
-
-//   private function addTerms(array $data)
-//   {
-//     foreach ($data as $value) {
-//       array_push($this->terms, $value);
-//     }
-//   }
-// }
 

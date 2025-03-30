@@ -19,19 +19,37 @@ class Crud
 	private static ?PDO $pdo = null;
 	private static ?QueryBuilder $queryBuilder = null;
 
-	// private function __construct(string $query, array $terms = [])
-	// {
-	// 	echo "Construtor do CRUD.php";
-	// }
+
+	/**
+	 * Impedindo new Crud() fora da própria classe
+	 */
+	private function __construct()
+	{
+		echo "Construtor do CRUD.php";
+	}
 
 	private static function init(): void
 	{
 		if (self::$pdo === null) {
 			self::$pdo = Connection::getInstance();
 		}
-		if (self::$queryBuilder === null) {
-			self::$queryBuilder = new QueryBuilder();
+		// if (self::$queryBuilder === null) {
+		// 	self::$queryBuilder = new QueryBuilder();
+		// }
+	}
+
+	public static function customQuery(string $name, array $params = []): self
+	{
+		// self::init();
+
+		try {
+			// self::$queryBuilder->customQuery($name, $params);
+			QueryBuilder::getInstance()->customQuery($name, $params);
+		} catch (Exception $e) {
+			throw new Exception("Erro ao executar consulta personalizada: " . $e->getMessage());
 		}
+
+		return new self;
 	}
 
 	/**
@@ -39,12 +57,16 @@ class Crud
 	 * @param $data
 	 * @return Crud
 	 */
-	public static function insert(string $table, array $data): self
+	public static function insert(string $table, array|QueryBuilder $data): QueryBuilder
 	{
-		self::init();
-		self::$queryBuilder->insert($table, $data);
+		// self::init();
+		// self::$queryBuilder->insert($table, $data);
 
-		return new self;
+		// return new self;
+		if (is_array($data)) {
+			return QueryBuilder::getInstance()->reset()->insert($table, $data);
+		}
+		return QueryBuilder::getInstance()->reset()->insertSelect($table);
 	}
 
 	/**
@@ -78,42 +100,16 @@ class Crud
 	 * @param $columns $columns = "id, nome, numero...etc";
 	 * Monta a primeira parte de um clausula SELECT
 	 */
-	public static function select(string $columns = "*"): self
+	// public static function select(string $columns = "*"): QueryBuilder
+	public static function select(...$columns): QueryBuilder
 	{
 		// $this->query .= " SELECT $columns";
-		self::init();
-		self::$queryBuilder->select($columns);
+		// self::init();
+		// self::$queryBuilder->select($columns);
 
-		// return $this;
-		return new self;
-	}
-
-
-	/**
-	 * @param string $table
-	 * @return Crud
-	 */
-	public function from(string $table): ?Crud
-	{
-		self::$queryBuilder->from($table);
-		return $this;
-	}
-
-	/**
-	 * @param $conditions column1, column2 || LIKE, AND, OR
-	 * @param $values
-	 * @return Crud
-	 */
-	public function where(string $conditions, array $values = []): ?Crud
-	{
-		if (!empty($values)) {
-			foreach ($values as $value) {
-				array_push($this->terms, $value);
-			}
-		}
-
-		self::$queryBuilder->where($conditions);
-		return $this;
+		// // return $this;
+		// return new self;
+		return QueryBuilder::getInstance()->reset()->select(...$columns);
 	}
 
 
@@ -175,18 +171,37 @@ class Crud
 		return $this;
 	}
 
+
+
+	/**
+	 * Verificando a possibilidade de trocar ? pelo :valor, ao efetuar o bind
+	 * @return array|bool
+	 */
+	// public function execute2(): array|bool
+	// {
+	// 	$stmt = self::$pdo->prepare(self::$queryBuilder->getQuery());
+	// 	foreach (self::$queryBuilder->getParams() as $param => $value) {
+	// 		$stmt->bindValue(":$param", $value);
+	// 	}
+	// 	return $stmt->execute() ? $stmt->fetchAll(PDO::FETCH_ASSOC) : false;
+	// }
+
+
 	/**
 	 * @param $fetch fetch (retorna um objeto), fetchAll (retorna um array), rowCount (numero de linhas afetadas)
 	 * @param $cleanQuery
 	 * @return mixed
 	 */
-	protected function execute(string $fetch = "", bool $cleanQuery = true)
+	public function execute(string $fetch = "", bool $cleanQuery = true)
 	{
 		try {
 
 			$conn = Connection::getInstance();
 
-			$stmt = $conn->prepare($this->query);
+			// $stmt = $conn->prepare($this->query);
+
+			$stmt = $conn->prepare(QueryBuilder::getQuery());
+
 
 			foreach ($this->terms as $key => $val) {
 				$stmt->bindValue($key + 1, $val, $this->bindType($val));
@@ -291,7 +306,8 @@ class Crud
 		// 	'SQL QB' => self::$queryBuilder->getQuery(),
 		// ];
 
-		return 'SQL QB:' . self::$queryBuilder->getQuery();
+		// return 'SQL QB:' . self::$queryBuilder->getQuery();
+		return 'SQL QB:' . QueryBuilder::getInstance()->getQuery();
 	}
 }
 
