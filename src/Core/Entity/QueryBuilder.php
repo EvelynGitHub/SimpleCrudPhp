@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace SimplePhp\SimpleCrud\Core\Entity;
 
 use SimplePhp\SimpleCrud\Core\Interfaces\CustomQuery;
-
+use SimplePhp\SimpleCrud\Infra\Database\Crud;
 
 
 class QueryBuilder
 {
-    protected static $instance = null;
+    protected static ?QueryBuilder $instance = null;
     protected string $query;
     protected array $params = [];
     private static array $customQueries = [];
@@ -32,16 +32,11 @@ class QueryBuilder
         if (!self::$instance) {
             self::$instance = new self();
         }
-        // return self::$instance;
-
-
-        // return self::$instance->reset();
-        self::$instance = new self();
 
         return self::$instance;
     }
 
-    private static function newInstance(): QueryBuilder
+    public static function newInstance(): QueryBuilder
     {
         return new self();
     }
@@ -100,16 +95,9 @@ class QueryBuilder
     public function where($condition, $params = [])
     {
         foreach ($params as &$param) {
-            if ($param instanceof QueryBuilder) {
-                // $subQuery = self::newInstance()
-                //     // ->select($params->query) // Copia a query sem afetar a principal
-                //     ->getQuery();
-                // $condition = str_replace("?", "($subQuery)", $condition);
-
-                $condition = str_replace("?", "(" . $param->getQuery() . ")", $condition);
-                $this->params = array_merge($this->params, $param->getParams());
-
-
+            if ($param instanceof Crud) {
+                $condition = str_replace("?", "(" . $param->getQueryBuilder()->getQuery() . ")", $condition);
+                $this->params = array_merge($this->params, $param->getQueryBuilder()->getParams());
             } else {
                 $this->params = array_merge($this->params, $params);
             }
@@ -165,6 +153,66 @@ class QueryBuilder
 
         return $this;
     }
+
+
+    /**
+     * @param $query "SELECT * FROM foo WHERE foo_id = ?"
+     * @param $values "[1]"
+     * @return self
+     */
+    protected function query(string $query, array $values = []): self
+    {
+        $this->query = $query;
+
+        if (!empty($values)) {
+            foreach ($values as $value) {
+                array_push($this->params, $value);
+            }
+        }
+        return $this;
+    }
+
+
+    /**
+     * @param string $columns "column1, column2"
+     * @param string $order "ASC|DESC"
+     * @return self
+     */
+    protected function order(string $columns, string $order = "ASC"): self
+    {
+        $this->query .= " ORDER BY $columns $order ";
+        // $this->query .= " ORDER BY $columns ";
+        return $this;
+    }
+
+
+    /**
+     * @param $start 0
+     * @param $end 10
+     * @return self
+     */
+    protected function limit(int $start = 0, int $end = 10): self
+    {
+        $this->query .= " LIMIT $start, $end";
+        return $this;
+    }
+
+    /**
+     * @param $name
+     * @param $params
+     * @return self
+     */
+    protected function call(string $name, array $params = []): self
+    {
+        if (!empty($params)) {
+            foreach ($params as $param) {
+                array_push($this->params, $param);
+            }
+        }
+        $this->query .= " CALL $name";
+        return $this;
+    }
+
 
     public function delete(string $table): void
     {

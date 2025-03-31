@@ -12,180 +12,48 @@ use SimplePhp\SimpleCrud\Core\Entity\QueryBuilder;
 
 class Crud
 {
-	private $query = "";
-	private $terms = [];
-	private static $error;
-
 	private static ?PDO $pdo = null;
-	private static ?QueryBuilder $queryBuilder = null;
+	private ?QueryBuilder $queryBuilder = null;
 
 
 	/**
 	 * Impedindo new Crud() fora da própria classe
 	 */
-	private function __construct()
+
+	private function __construct(QueryBuilder $queryBuilder)
 	{
-		echo "Construtor do CRUD.php";
+		self::init();
+		$this->queryBuilder = $queryBuilder;
+
+		echo "<p> ### Chamando construtor do Crud. ### </p>" . PHP_EOL;
 	}
+
 
 	private static function init(): void
 	{
 		if (self::$pdo === null) {
 			self::$pdo = Connection::getInstance();
 		}
-		// if (self::$queryBuilder === null) {
-		// 	self::$queryBuilder = new QueryBuilder();
-		// }
 	}
 
-	public static function customQuery(string $name, array $params = []): self
+	public function getQueryBuilder(): QueryBuilder
 	{
-		// self::init();
-
-		try {
-			// self::$queryBuilder->customQuery($name, $params);
-			QueryBuilder::getInstance()->customQuery($name, $params);
-		} catch (Exception $e) {
-			throw new Exception("Erro ao executar consulta personalizada: " . $e->getMessage());
-		}
-
-		return new self;
+		return $this->queryBuilder;
 	}
 
-	/**
-	 * @param $table
-	 * @param $data
-	 * @return Crud
-	 */
-	public static function insert(string $table, array|QueryBuilder $data): QueryBuilder
-	{
-		// self::init();
-		// self::$queryBuilder->insert($table, $data);
-
-		// return new self;
-		if (is_array($data)) {
-			return QueryBuilder::getInstance()->reset()->insert($table, $data);
-		}
-		return QueryBuilder::getInstance()->reset()->insertSelect($table);
-	}
-
-	/**
-	 * Atualiza o registro especificado
-	 * @param string $table nome da tabela que deseja atualizar
-	 * @param string $columns colunas para atualizar. Ex: "nmlogin = ?, cdpass=? "
-	 * @param array $data valores para substituirem os '?' devem ser colocados na mesma ordem
-	 * @return Crud
-	 */
-	protected function update(string $table, string $columns, array $data): ?Crud
-	{
-		$this->init();
-		self::$queryBuilder->update($table, $columns)->getQuery();
-
-		$this->addTerms($data);
-		// return new self;
-		return $this;
-	}
-
-	/**
-	 * @return Crud
-	 */
-	protected function delete(): ?Crud
-	{
-		// $this->query .= " DELETE";
-		return $this;
-	}
-
-
-	/**
-	 * @param $columns $columns = "id, nome, numero...etc";
-	 * Monta a primeira parte de um clausula SELECT
-	 */
-	// public static function select(string $columns = "*"): QueryBuilder
-	public static function select(...$columns): QueryBuilder
-	{
-		// $this->query .= " SELECT $columns";
-		// self::init();
-		// self::$queryBuilder->select($columns);
-
-		// // return $this;
-		// return new self;
-		return QueryBuilder::getInstance()->reset()->select(...$columns);
-	}
-
-
-	/**
-	 * @param $query "SELECT * FROM foo WHERE foo_id = ?"
-	 * @param $values "[1]"
-	 * @return Crud
-	 */
-	protected function query(string $query, array $values = []): ?Crud
-	{
-		$this->query = $query;
-
-		if (!empty($values)) {
-			foreach ($values as $value) {
-				array_push($this->terms, $value);
-			}
-		}
-		return $this;
-	}
-
-
-	/**
-	 * @param string $columns "column1, column2"
-	 * @param string $order "ASC|DESC"
-	 * @return Crud
-	 */
-	protected function order(string $columns, string $order = "ASC"): ?Crud
-	{
-		$this->query .= " ORDER BY $columns $order ";
-		// $this->query .= " ORDER BY $columns ";
-		return $this;
-	}
-
-
-	/**
-	 * @param $start 0
-	 * @param $end 10
-	 * @return Crud
-	 */
-	protected function limit(int $start = 0, int $end = 10): ?Crud
-	{
-		$this->query .= " LIMIT $start, $end";
-		return $this;
-	}
-
-	/**
-	 * @param $name
-	 * @param $params
-	 * @return Crud
-	 */
-	protected function call(string $name, array $params = []): ?Crud
-	{
-		if (!empty($params)) {
-			foreach ($params as $param) {
-				array_push($this->terms, $param);
-			}
-		}
-		$this->query .= " CALL $name";
-		return $this;
-	}
-
-
-
-	/**
-	 * Verificando a possibilidade de trocar ? pelo :valor, ao efetuar o bind
-	 * @return array|bool
-	 */
-	// public function execute2(): array|bool
+	// public static function customQuery(string $name, array $params = []): self
 	// {
-	// 	$stmt = self::$pdo->prepare(self::$queryBuilder->getQuery());
-	// 	foreach (self::$queryBuilder->getParams() as $param => $value) {
-	// 		$stmt->bindValue(":$param", $value);
-	// 	}
-	// 	return $stmt->execute() ? $stmt->fetchAll(PDO::FETCH_ASSOC) : false;
-	// }
+	// 	self::init();
 
+	// 	try {
+	// 		self::$queryBuilder->customQuery($name, $params);
+	// 		// QueryBuilder::getInstance()->customQuery($name, $params);
+	// 	} catch (Exception $e) {
+	// 		throw new Exception("Erro ao executar consulta personalizada: " . $e->getMessage());
+	// 	}
+
+	// 	return new self;
+	// }
 
 	/**
 	 * @param $fetch fetch (retorna um objeto), fetchAll (retorna um array), rowCount (numero de linhas afetadas)
@@ -198,18 +66,21 @@ class Crud
 
 			$conn = Connection::getInstance();
 
-			// $stmt = $conn->prepare($this->query);
+			$query = $this->queryBuilder->getQuery();
 
-			$stmt = $conn->prepare(QueryBuilder::getQuery());
+			$stmt = $conn->prepare($query);
 
-
-			foreach ($this->terms as $key => $val) {
-				$stmt->bindValue($key + 1, $val, $this->bindType($val));
+			foreach ($this->queryBuilder->getParams() as $key => $val) {
+				// $stmt->bindValue($key + 1, $val, $this->bindType($val));
+				$stmt->bindValue(":$key", $val, $this->bindType($val));
 			}
 
 			if ($cleanQuery) {
-				$this->query = "";
-				$this->terms = [];
+				// $this->query = "";
+				// $this->terms = [];
+
+				// Destruir $this->queryBuilder ou só limpar
+				$this->queryBuilder->reset();
 			}
 
 			if ($stmt->execute()) {
@@ -231,11 +102,9 @@ class Crud
 				return false;
 			}
 		} catch (ConnectionException $con) {
-			self::$error = $con->getError();
 			throw new Exception("Falha ao conectar com o Banco de Dados: " . $con->getMessage());
 		} catch (PDOException $e) {
-			self::$error = $e->getMessage();
-			throw new PDOException('Falha ao executar:' . self::$error);
+			throw new PDOException('Falha ao executar:' . $e->getMessage());
 		} catch (Exception $e) {
 			self::$error = $e;
 		}
@@ -266,48 +135,44 @@ class Crud
 		return $var_type;
 	}
 
-	// protected function query(string $sql, array $data = []): ?Crud
-	// {
-	//     $this->query .= $sql;
 
-	//     $this->addTerms($data);
-
-	//     return $this;
-	// }
-
-
-	/**
-	 * @return mixed
-	 */
-	protected function getQuery()
+	public function getQuery()
 	{
-		return $this->query;
+		return $this->queryBuilder->getQuery();
 	}
 
 	/**
-	 * @return mixed
+	 * Captura chamadas estáticas e retorna um Crud em vez de um QueryBuilder
 	 */
-	protected static function getError()
+	public static function __callStatic($name, $arguments): self
 	{
-		return self::$error;
-	}
 
-	private function addTerms(array $data)
-	{
-		foreach ($data as $value) {
-			array_push($this->terms, $value);
+		echo "<p> ## Chamada Static do Crud. $name ## </p>" . PHP_EOL;
+
+		$queryBuilder = QueryBuilder::newInstance();
+
+		if (method_exists($queryBuilder, $name)) {
+			call_user_func_array([$queryBuilder, $name], $arguments);
+			return new self($queryBuilder); // 🔥 Retorna Crud, não QueryBuilder
 		}
+
+		throw new Exception("Método '$name' não encontrado no QueryBuilder.");
 	}
 
-	public function getSQL()
+	/**
+	 * Encaminha chamadas para QueryBuilder e mantém encadeamento
+	 */
+	public function __call($name, $arguments): self
 	{
-		// return [
-		// 	'SQL CRUD' => $this->query,
-		// 	'SQL QB' => self::$queryBuilder->getQuery(),
-		// ];
+		echo "<p> ## Chamada Obj do Crud. $name ## </p>" . PHP_EOL;
 
-		// return 'SQL QB:' . self::$queryBuilder->getQuery();
-		return 'SQL QB:' . QueryBuilder::getInstance()->getQuery();
+		if (method_exists($this->queryBuilder, $name)) {
+			call_user_func_array([$this->queryBuilder, $name], $arguments);
+			return $this;
+		}
+
+		throw new Exception("Método '$name' não encontrado no QueryBuilder.");
 	}
+
 }
 
