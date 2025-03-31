@@ -13,7 +13,7 @@ class MyCustomQueryExample implements CustomQuery
 
     public function apply(): string
     {
-        return "SELECT * FROM users WHERE email = :email";
+        return "SELECT * FROM usuarios WHERE email = :email";
     }
 
     public function setParams(array $params): void
