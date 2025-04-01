@@ -9,6 +9,7 @@ use SimplePhp\SimpleCrud\Core\UseCases\SeedRunner;
 class Seeds
 {
 
+    private static bool $idExecuted = false;
     // private string $dirSeedPath;
 
     // public function __construct(string $dirSeedPath)
@@ -28,7 +29,20 @@ class Seeds
 
     public static function run(string $path): void
     {
-        $pdo = Connection::getInstance();
-        SeedRunner::run($path, $pdo);
+        $conn = Connection::getInstance();
+
+        $query = "Select * from usuarios limit 1";
+
+        $stmt = $conn->prepare($query);
+
+        $stmt->execute();
+
+        $usuarios = $stmt->fetchAll();
+
+        if (count($usuarios) == 0) {
+            SeedRunner::run($path, $conn);
+        } else {
+            echo "Seeds Já Executadas <br>";
+        }
     }
 }

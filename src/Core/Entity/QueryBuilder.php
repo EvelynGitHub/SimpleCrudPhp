@@ -68,12 +68,9 @@ class QueryBuilder
     }
 
 
-    // public function select(string $columns): void
-    // {
-    //     $this->query .= " SELECT $columns";
-    // }
     public function select(...$columns): QueryBuilder
     {
+
         $columns = implode(", ", $columns);
         $this->query = "SELECT $columns";
         return $this;
@@ -107,12 +104,26 @@ class QueryBuilder
         return $this;
     }
 
-    public function insert(string $table, array $data): self
+    public function insert(string $table, array|Crud $data, ?string $columns = null): self
     {
-        $columns = implode(', ', array_keys($data));
-        $values = implode(', ', array_map(fn($v) => "'$v'", array_values($data)));
-        $this->query = "INSERT INTO $table ($columns) VALUES ($values)";
+        if (is_array($data)) {
+            $columns = implode(', ', array_keys($data));
+            $values = implode(', ', array_map(fn($v) => "'$v'", array_values($data)));
+            $this->query = "INSERT INTO $table ($columns) VALUES ($values)";
 
+            return $this;
+        }
+
+        if ($data instanceof Crud) {
+            $values = $data->getQueryBuilder()->getQuery();
+
+            $this->params = array_merge($this->params, $data->getQueryBuilder()->getParams());
+
+            $this->query = "INSERT INTO $table ($columns) $values";
+        }
+
+
+        // throw new \Exception("Consulta não registrada.");
         // $columns = implode(",", array_keys($data));
         // $amount = implode(',', array_fill(0, count($data), '?'));
 
@@ -143,11 +154,20 @@ class QueryBuilder
     }
 
 
-    public function update(string $table, string $columns): self
+    public function update(string $table, array $data): self
     {
-        // $set = implode(', ', array_map(fn($k, $v) => "$k = '$v'", array_keys($data), $data));
-        // $this->query = "UPDATE $table SET $set";
-        $this->query .= " UPDATE $table SET $columns";
+        $callback = fn(string $k, string $v): string => "$k = :$k";
+
+        $columns = array_map($callback, array_keys($data), array_values($data));
+
+        // $columns = array_map(fn($k, $v): string => "$k = :$k", $data);
+
+        $set = implode(', ', $columns);
+
+        $this->params = array_merge($this->params, $data);
+
+        $this->query = "UPDATE $table SET $set";
+        // $this->query .= " UPDATE $table SET $columns";
 
         // $this->addTerms($data);
 
@@ -178,10 +198,18 @@ class QueryBuilder
      * @param string $order "ASC|DESC"
      * @return self
      */
-    protected function order(string $columns, string $order = "ASC"): self
+    public function order(string $columns, string $order = "ASC"): self
     {
         $this->query .= " ORDER BY $columns $order ";
         // $this->query .= " ORDER BY $columns ";
+        return $this;
+    }
+
+
+    public function group(array $columns): self
+    {
+        $value = implode(" ,", $columns);
+        $this->query .= " GROUP BY $value ";
         return $this;
     }
 

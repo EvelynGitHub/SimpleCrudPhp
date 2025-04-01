@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS pedidos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_usuario INTEGER NOT NULL,
+    data_pedido TEXT DEFAULT CURRENT_TIMESTAMP,
+    total REAL NOT NULL,
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id)
+);

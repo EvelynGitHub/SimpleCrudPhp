@@ -71,8 +71,11 @@ class Crud
 			$stmt = $conn->prepare($query);
 
 			foreach ($this->queryBuilder->getParams() as $key => $val) {
-				// $stmt->bindValue($key + 1, $val, $this->bindType($val));
-				$stmt->bindValue(":$key", $val, $this->bindType($val));
+				if (is_string($key)) {
+					$stmt->bindValue(":$key", $val, $this->bindType($val));
+				} else {
+					$stmt->bindValue($key + 1, $val, $this->bindType($val));
+				}
 			}
 
 			if ($cleanQuery) {
@@ -174,5 +177,9 @@ class Crud
 		throw new Exception("Método '$name' não encontrado no QueryBuilder.");
 	}
 
+	public function __toString()
+	{
+		return $this->queryBuilder->getQuery();
+	}
 }
 
