@@ -1,3 +1,10 @@
 /vendor
 /.env.php
 /.tool-versions
+.idea
+.vscode
+.phpunit_report
+phpunit-coverage-result.xml
+phpunit-execution-result.xml
+phpmd.html
+phpstan.log
