@@ -4,22 +4,24 @@ declare(strict_types=1);
 
 namespace SimplePhp\SimpleCrud\Infra\Database;
 
-// use SimplePhp\SimpleCrud\Core\Entity\QueryBuilder;
 use Exception;
 use PDO;
 use PDOException;
 use SimplePhp\SimpleCrud\Core\Entity\QueryBuilder;
 
+/**
+ * @method static QueryBuilder|Crud select(...$columns)
+ * @method static QueryBuilder insert(string $table, array|Crud $data, ?string $columns = null)
+ * @method static QueryBuilder update(string $table, array $data)
+ */
 class Crud
 {
 	private static ?PDO $pdo = null;
 	private ?QueryBuilder $queryBuilder = null;
 
-
 	/**
 	 * Impedindo new Crud() fora da própria classe
 	 */
-
 	private function __construct(QueryBuilder $queryBuilder)
 	{
 		self::init();
@@ -27,7 +29,6 @@ class Crud
 
 		echo "<p> ### Chamando construtor do Crud. ### </p>" . PHP_EOL;
 	}
-
 
 	private static function init(): void
 	{
@@ -107,7 +108,7 @@ class Crud
 		} catch (ConnectionException $con) {
 			throw new Exception("Falha ao conectar com o Banco de Dados: " . $con->getMessage());
 		} catch (PDOException $e) {
-			throw new PDOException('Falha ao executar:' . $e->getMessage());
+			throw new PDOException('Falha ao executar:' . $e->getMessage() . "  Linha: " . $e->getLine());
 		} catch (Exception $e) {
 			self::$error = $e;
 		}
@@ -146,6 +147,10 @@ class Crud
 
 	/**
 	 * Captura chamadas estáticas e retorna um Crud em vez de um QueryBuilder
+	 * @param string $name nome do método
+	 * @param array $arguments parâmetros que serão passados para o método
+	 * @return QueryBuilder
+	 * @throws \BadMethodCallException
 	 */
 	public static function __callStatic($name, $arguments): self
 	{
@@ -159,11 +164,15 @@ class Crud
 			return new self($queryBuilder); // 🔥 Retorna Crud, não QueryBuilder
 		}
 
-		throw new Exception("Método '$name' não encontrado no QueryBuilder.");
+		throw new \BadMethodCallException("Método '$name' não encontrado no QueryBuilder.");
 	}
 
 	/**
 	 * Encaminha chamadas para QueryBuilder e mantém encadeamento
+	 * @param string $name nome do método
+	 * @param array $arguments parâmetros que serão passados para o método
+	 * @return QueryBuilder
+	 * @throws \BadMethodCallException
 	 */
 	public function __call($name, $arguments): self
 	{
@@ -174,7 +183,7 @@ class Crud
 			return $this;
 		}
 
-		throw new Exception("Método '$name' não encontrado no QueryBuilder.");
+		throw new \BadMethodCallException("Método '$name' não encontrado no QueryBuilder.");
 	}
 
 	public function __toString()
