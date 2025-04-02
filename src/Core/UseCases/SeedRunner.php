@@ -7,7 +7,6 @@ namespace SimplePhp\SimpleCrud\Core\UseCases;
 use PDO;
 use SimplePhp\SimpleCrud\Core\Interfaces\DatabaseConnectionInterface;
 
-
 class SeedRunner
 {
     private PDO $pdo;

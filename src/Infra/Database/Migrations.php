@@ -6,7 +6,6 @@ namespace SimplePhp\SimpleCrud\Infra\Database;
 
 use SimplePhp\SimpleCrud\Core\UseCases\MigrationRunner;
 
-
 class Migrations
 {
     public static function run(string $migrationPath): void

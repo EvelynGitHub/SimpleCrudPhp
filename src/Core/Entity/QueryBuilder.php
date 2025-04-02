@@ -7,7 +7,6 @@ namespace SimplePhp\SimpleCrud\Core\Entity;
 use SimplePhp\SimpleCrud\Core\Interfaces\CustomQuery;
 use SimplePhp\SimpleCrud\Infra\Database\Crud;
 
-
 class QueryBuilder
 {
     protected static ?QueryBuilder $instance = null;
@@ -257,4 +256,3 @@ class QueryBuilder
         return $this->params;
     }
 }
-

@@ -46,6 +46,6 @@
     "cbf": "./vendor/bin/phpcbf --standard=phpcs.xml",
     "export-tests": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --coverage-clover=phpunit-coverage-result.xml --log-junit=phpunit-execution-result.xml --coverage-html .phpunit_report",
     "stan": "vendor/bin/phpstan analyse -c phpstan.neon > phpstan.log",
-    "md": "vendor/bin/phpmd src html phpmd.xml > phpmd.html"
+    "md": "vendor/bin/phpmd src html ruleset.xml > phpmd.html"
   }
 }
