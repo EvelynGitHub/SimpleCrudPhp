@@ -6,10 +6,8 @@ namespace SimplePhp\SimpleCrud\Core\UseCases;
 
 use SimplePhp\SimpleCrud\Infra\Database\Connection;
 
-
 class MigrationRunner
 {
-
     public static function run(string $migrationPath): void
     {
         $pdo = Connection::getInstance();

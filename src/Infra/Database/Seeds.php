@@ -8,7 +8,6 @@ use SimplePhp\SimpleCrud\Core\UseCases\SeedRunner;
 
 class Seeds
 {
-
     private static bool $idExecuted = false;
     // private string $dirSeedPath;
 
