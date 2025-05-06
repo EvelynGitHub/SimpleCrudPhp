@@ -53,6 +53,13 @@ class QueryBuilder
         self::$customQueries[$name] = $queryInstance;
     }
 
+    /**
+     * Prepara a query customizada instanciada anteriormente em registerQuery()
+     * @param string $name Mesmo nome usado no registerQuery()
+     * @param array $params Dados que serão usados para bind
+     * @throws \Exception
+     * @return QueryBuilder
+     */
     public function customQuery(string $name, array $params = []): self
     {
         if (!isset(self::$customQueries[$name])) {
@@ -70,7 +77,6 @@ class QueryBuilder
 
     public function select(...$columns): QueryBuilder
     {
-
         $columns = implode(", ", $columns);
         $this->query = "SELECT $columns";
         return $this;
