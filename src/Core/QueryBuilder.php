@@ -20,12 +20,6 @@ abstract class QueryBuilder
     protected ?int $offset = null;
 
 
-    // public function select(array|string ...$columns): static
-    // {
-    //     $this->columns = is_array($columns[0]) ? $columns[0] : $columns;
-    //     return $this;
-    // }
-
     public function where($column, $operator = null, $value = null): static
     {
         return $this->addWhere('AND', $column, $operator, $value);

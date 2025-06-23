@@ -18,11 +18,37 @@ class SQLUtils
         // Retornar a consulta com os bindings aplicados
     }
 
-    public static function sanitizeInput($input)
+    public static function normalizerPlaceholder(string $query, array $bindings): array
     {
-        // Implementar lógica para sanitizar entradas de usuário
-        // Retornar a entrada sanitizada
+        $normalizedQuery = $query;
+        $normalizedBindings = [];
+        $placeholderCounts = [];
+
+        preg_match_all('/:\w+/', $query, $matches);
+        $placeholdersInQuery = $matches[0];
+
+        foreach ($placeholdersInQuery as $placeholder) {
+            if (!array_key_exists($placeholder, $bindings)) {
+                continue;
+            }
+
+            if (!isset($placeholderCounts[$placeholder])) {
+                $placeholderCounts[$placeholder] = 1;
+                $newPlaceholder = $placeholder;
+            } else {
+                $placeholderCounts[$placeholder]++;
+                $newPlaceholder = "{$placeholder}_{$placeholderCounts[$placeholder]}";
+            }
+
+            $pattern = '/(?<!\w)' . preg_quote($placeholder, '/') . '(?!\w)/';
+            $normalizedQuery = preg_replace($pattern, $newPlaceholder, $normalizedQuery, 1);
+
+            $normalizedBindings[$newPlaceholder] = $bindings[$placeholder];
+        }
+
+        return [$normalizedQuery, $normalizedBindings];
     }
+
 
     /**
      * Aplica filtros complexos a partir de um array, recursivamente.
@@ -34,14 +60,13 @@ class SQLUtils
 
             if (in_array(strtoupper($key), ['OR', 'AND'])) {
                 $qb->$method(function ($q) use ($value, $key) {
-                    foreach ($value as $condition) {
-                        self::applyFilters($q, $condition, strtoupper($key));
-                    }
+                    self::applyFilters($q, $value, strtoupper($key));
                 });
                 continue;
             }
 
             if (is_array($value)) {
+                // NOTA: Ainda falta implementar corretamente
                 foreach ($value as $op => $val) {
                     $upperOp = strtoupper($op);
                     if ($upperOp === 'IN') {

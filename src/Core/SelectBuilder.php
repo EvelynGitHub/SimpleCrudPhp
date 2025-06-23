@@ -8,22 +8,26 @@ use SimplePhp\SimpleCrud\Contracts\BuilderInterface;
 
 class SelectBuilder extends QueryBuilder implements BuilderInterface
 {
-    // protected $table;
-    // protected $columns = '*';
-    // protected $wheres = [];
-    protected $orderBy = [];
-    // protected ?int $limit = null;
-    // protected ?int $offset = null;
+    protected array $orderBy = [];
     private array $joins = [];
+    protected string $alias;
 
-    // public function select(...$columns)
-    // {
-    //     $this->columns = $columns;
-    //     return $this;
-    // }
+    public function aliasSubQuery(string $name): void
+    {
+        $this->alias = $name;
+    }
 
     public function select(array|string ...$columns): static
     {
+        if (is_array($columns)) {
+            foreach ($columns[0] as $key => $column) {
+                if ($column instanceof SelectBuilder) {
+                    $as = $column->alias ?: "sub_query_$key";
+                    $columns[0][$key] = "({$column->getSql()}) AS {$as}";
+                    $this->bindings = array_merge($column->getBindings(), $this->bindings);
+                }
+            }
+        }
         $this->columns = is_array($columns[0]) ? $columns[0] : $columns;
         return $this;
     }
@@ -50,6 +54,17 @@ class SelectBuilder extends QueryBuilder implements BuilderInterface
     public function orderBy($column, $direction = 'ASC')
     {
         $this->orderBy[] = "$column $direction";
+        return $this;
+    }
+
+    public function join(string $table, string $onCondition, string $type = 'INNER'): static
+    {
+        $this->joins[] = [
+            'table' => $table,
+            'on' => $onCondition,
+            'type' => $type
+        ];
+
         return $this;
     }
 
@@ -100,16 +115,4 @@ class SelectBuilder extends QueryBuilder implements BuilderInterface
     {
         return $this->buildQuery();
     }
-
-    // public function getBindings(): array
-    // {
-    //     $bindings = [];
-
-    //     foreach ($this->wheres as $where) {
-    //         $bindings = array_merge($bindings, is_array($where['value']) ? $where['value'] : [$where['value']]);
-    //     }
-
-    //     return $bindings;
-    // }
-
 }
