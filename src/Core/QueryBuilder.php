@@ -12,13 +12,24 @@ use SimplePhp\SimpleCrud\Helpers\SQLUtils;
 abstract class QueryBuilder
 {
     protected string $table = '';
+    protected array $joins = [];
     protected array $columns = [];
     protected array $wheres = [];
     protected array $bindings = [];
-    protected array $order = [];
+    protected array $orderBy = [];
     protected ?int $limit = null;
     protected ?int $offset = null;
 
+    public function join(string $table, string $onCondition, string $type = 'INNER'): static
+    {
+        $this->joins[] = [
+            'table' => $table,
+            'on' => $onCondition,
+            'type' => $type
+        ];
+
+        return $this;
+    }
 
     public function where($column, $operator = null, $value = null): static
     {
@@ -92,6 +103,24 @@ abstract class QueryBuilder
         // Adiciona o valor ao array de bindings e retorna o placeholder
         $this->bindings[] = $value;
         return '?';
+    }
+
+    public function orderBy($column, $direction = 'ASC')
+    {
+        $this->orderBy[] = "$column $direction";
+        return $this;
+    }
+
+    public function limit(int $limit): static
+    {
+        $this->limit = $limit;
+        return $this;
+    }
+
+    public function offset(int $offset): static
+    {
+        $this->offset = $offset;
+        return $this;
     }
 
     public function getBindings(): array

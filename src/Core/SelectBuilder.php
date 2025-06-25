@@ -8,8 +8,6 @@ use SimplePhp\SimpleCrud\Contracts\BuilderInterface;
 
 class SelectBuilder extends QueryBuilder implements BuilderInterface
 {
-    protected array $orderBy = [];
-    private array $joins = [];
     protected string $alias;
 
     public function aliasSubQuery(string $name): void
@@ -36,35 +34,6 @@ class SelectBuilder extends QueryBuilder implements BuilderInterface
     public function from(string $table): static
     {
         $this->table = $table;
-        return $this;
-    }
-
-    public function limit(int $limit): static
-    {
-        $this->limit = $limit;
-        return $this;
-    }
-
-    public function offset(int $offset): static
-    {
-        $this->offset = $offset;
-        return $this;
-    }
-
-    public function orderBy($column, $direction = 'ASC')
-    {
-        $this->orderBy[] = "$column $direction";
-        return $this;
-    }
-
-    public function join(string $table, string $onCondition, string $type = 'INNER'): static
-    {
-        $this->joins[] = [
-            'table' => $table,
-            'on' => $onCondition,
-            'type' => $type
-        ];
-
         return $this;
     }
 

@@ -6,29 +6,40 @@ namespace SimplePhp\SimpleCrud\Core;
 
 use SimplePhp\SimpleCrud\Contracts\BuilderInterface;
 
-class DeleteBuilder implements BuilderInterface
+class DeleteBuilder extends QueryBuilder implements BuilderInterface
 {
-    protected $table;
-    protected $conditions = [];
+    protected string $table;
 
-    public function from($table)
+    public function from(string $table): static
     {
         $this->table = $table;
         return $this;
     }
 
-    public function where($condition)
+    private function build(): string
     {
-        $this->conditions[] = $condition;
-        return $this;
-    }
+        $hasJoin = !empty($this->joins);
+        $hasWhere = !empty($this->wheres);
+        $hasLimit = !empty($this->limit);
+        $hasOffset = !empty($this->offset);
 
-    private function build()
-    {
-        $query = "DELETE FROM " . $this->table;
+        if (empty($this->table)) {
+            throw new \RuntimeException('Especifique a Tabela para o DELETE.');
+        }
 
-        if (!empty($this->conditions)) {
-            $query .= " WHERE " . implode(' AND ', $this->conditions);
+        if ($hasJoin || $hasOffset || $hasLimit) {
+            throw new \RuntimeException(
+                'DELETE com JOINs, LIMIT ou OFFSET não é suportado.
+                Use uma subquery no WHERE ou query livre query().
+                Não esqueça de usar os bindings corretamente.'
+            );
+        }
+
+        // Montagem básica
+        $query = "DELETE FROM {$this->table}";
+
+        if ($hasWhere) {
+            $query .= ' WHERE ' . $this->compileWheres();
         }
 
         return $query;
@@ -37,11 +48,5 @@ class DeleteBuilder implements BuilderInterface
     public function getSql(): string
     {
         return $this->build();
-    }
-
-    public function getBindings(): array
-    {
-        // Aqui você pode retornar os bindings, se necessário.
-        return [];
     }
 }
