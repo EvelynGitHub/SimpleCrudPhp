@@ -6,6 +6,7 @@ namespace SimplePhp\SimpleCrud\Facades;
 
 use SimplePhp\SimpleCrud\Contracts\BuilderInterface;
 use SimplePhp\SimpleCrud\Contracts\ExecutableInterface;
+use SimplePhp\SimpleCrud\UseCases\QueryResult;
 
 class Wrapper
 {
@@ -25,7 +26,7 @@ class Wrapper
         throw new \BadMethodCallException("Método $method não existe");
     }
 
-    public function execute(): array|int
+    public function execute(): QueryResult
     {
         return $this->executor->handle($this->builder);
     }

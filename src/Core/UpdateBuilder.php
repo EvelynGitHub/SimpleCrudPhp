@@ -45,7 +45,7 @@ class UpdateBuilder extends QueryBuilder implements BuilderInterface
         return $this;
     }
 
-    public function build()
+    private function build(): string
     {
         $hasJoin = !empty($this->joins);
         $hasWhere = !empty($this->wheres);

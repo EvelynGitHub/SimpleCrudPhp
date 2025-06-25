@@ -2,33 +2,22 @@
 
 declare(strict_types=1);
 
+use SimplePhp\SimpleCrud\Core\DeleteBuilder;
 use SimplePhp\SimpleCrud\Core\InsertBuilder;
 use SimplePhp\SimpleCrud\Core\RawQueryBuilder;
 use SimplePhp\SimpleCrud\Core\SelectBuilder;
-use SimplePhp\SimpleCrud\Facades\InsertBuilderWrapper;
-use SimplePhp\SimpleCrud\Facades\SelectBuilderWrapper;
+use SimplePhp\SimpleCrud\Core\UpdateBuilder;
 use SimplePhp\SimpleCrud\Facades\Wrapper;
-use SimplePhp\SimpleCrud\UseCases\ExecuteInsert;
 use SimplePhp\SimpleCrud\UseCases\ExecuteQuery;
 
 class DB
 {
-    // protected static $instance;
     protected static PDO $pdo;
 
     public static function connect(PDO $pdo): void
     {
         self::$pdo = $pdo;
     }
-
-    // Exemplos de métodos que podem ser implementados
-    // public static function select(array $columns): SelectBuilderWrapper
-    // {
-    //     return new SelectBuilderWrapper(
-    //         new SelectBuilder()->select($columns),
-    //         new ExecuteQuery(self::$pdo)
-    //     );
-    // }
 
     public static function select(array $columns): Wrapper
     {
@@ -38,28 +27,37 @@ class DB
         );
     }
 
-    // Lógica para executar uma consulta INSERT usando o builder
-    public static function insert(string $table): InsertBuilderWrapper
+    public static function insert(string $table): Wrapper
     {
-        return new InsertBuilderWrapper(
-            new InsertBuilder($table),
-            new ExecuteInsert(self::$pdo)
+        return new Wrapper(
+            new InsertBuilder()->table($table),
+            new ExecuteQuery(self::$pdo)
         );
     }
 
-    public function update($builder)
+    public function update(string $table): Wrapper
     {
-        // Lógica para executar uma consulta UPDATE usando o builder
+        return new Wrapper(
+            new UpdateBuilder()->table($table),
+            new ExecuteQuery(self::$pdo)
+        );
     }
 
-    public function delete($builder)
+    public function delete(string $table): Wrapper
     {
-        // Lógica para executar uma consulta DELETE usando o builder
+        return new Wrapper(
+            new DeleteBuilder()->from($table),
+            new ExecuteQuery(self::$pdo)
+        );
     }
 
-    public static function query(string $sql, array $bindings = []): RawQueryBuilder
+    public static function query(string $sql, array $bindings = []): Wrapper
     {
-        return new RawQueryBuilder($sql, $bindings);
+        // return new RawQueryBuilder($sql, $bindings);
+        return new Wrapper(
+            new RawQueryBuilder($sql, $bindings),
+            new ExecuteQuery(self::$pdo)
+        );
     }
 
 }
