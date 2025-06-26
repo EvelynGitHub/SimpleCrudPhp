@@ -18,7 +18,7 @@ use SimplePhp\SimpleCrud\UseCases\QueryResult;
 
 class DBTest extends TestCase
 {
-    private $pdo;
+    private PDO $pdo;
 
     protected function setUp(): void
     {

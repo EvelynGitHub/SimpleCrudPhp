@@ -38,7 +38,11 @@
     "phpstan/phpstan": "^2.0",
     "phpstan/phpstan-strict-rules": "^2.0",
     "squizlabs/php_codesniffer": "^3.11",
-    "phpmd/phpmd": "^2.15"
+    "phpmd/phpmd": "^2.15",
+    "vlucas/phpdotenv": "^5.5"
+  },
+  "suggest": {
+    "vlucas/phpdotenv": "Permite carregar .env automaticamente"
   },
   "scripts": {
     "tests": "./vendor/bin/phpunit tests",

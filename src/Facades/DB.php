@@ -20,7 +20,6 @@ class DB
 
     private function __construct()
     {
-        // Evita a instanciação direta da classe
     }
 
     /**
@@ -92,7 +91,7 @@ class DB
     {
         self::ensureConnected();
         return new Wrapper(
-            new SelectBuilder()->select($columns),
+            (new SelectBuilder())->select($columns),
             new ExecuteQuery(self::$pdo)
         );
     }
@@ -101,7 +100,7 @@ class DB
     {
         self::ensureConnected();
         return new Wrapper(
-            new InsertBuilder()->table($table),
+            (new InsertBuilder())->table($table),
             new ExecuteQuery(self::$pdo)
         );
     }
@@ -110,7 +109,7 @@ class DB
     {
         self::ensureConnected();
         return new Wrapper(
-            new UpdateBuilder()->table($table),
+            (new UpdateBuilder())->table($table),
             new ExecuteQuery(self::$pdo)
         );
     }
@@ -119,7 +118,7 @@ class DB
     {
         self::ensureConnected();
         return new Wrapper(
-            new DeleteBuilder()->from($table),
+            (new DeleteBuilder())->from($table),
             new ExecuteQuery(self::$pdo)
         );
     }
