@@ -17,16 +17,18 @@ class SelectBuilder extends QueryBuilder implements BuilderInterface
 
     public function select(array|string ...$columns): static
     {
-        if (is_array($columns)) {
-            foreach ($columns[0] as $key => $column) {
+        $columnsToProcess = (is_array($columns[0]) && count($columns) === 1) ? $columns[0] : $columns;
+
+        if (is_array($columnsToProcess)) {
+            foreach ($columnsToProcess as $key => $column) {
                 if ($column instanceof SelectBuilder) {
                     $as = $column->alias ?: "sub_query_$key";
-                    $columns[0][$key] = "({$column->getSql()}) AS {$as}";
+                    $columnsToProcess[$key] = "({$column->getSql()}) AS {$as}";
                     $this->bindings = array_merge($column->getBindings(), $this->bindings);
                 }
             }
         }
-        $this->columns = is_array($columns[0]) ? $columns[0] : $columns;
+        $this->columns = $columnsToProcess;
         return $this;
     }
 

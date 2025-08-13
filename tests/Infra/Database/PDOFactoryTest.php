@@ -9,6 +9,9 @@ use SimplePhp\SimpleCrud\Infra\Database\PDOFactory;
 
 class PDOFactoryTest extends TestCase
 {
+    /**
+     * @expectedWarningMessage [SimpleCrud] Usando SQLite em memória como fallback. Configure seu .env para produção.
+     */
     public function testCreateFromEnvFallsBackToMemory()
     {
         putenv('DB_CONNECTION'); // limpa

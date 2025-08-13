@@ -13,7 +13,7 @@ class UpdateBuilderTest extends TestCase
     public function testUpdateSimpleWithWhere()
     {
         $builder = new UpdateBuilder();
-        $builder->table('produtos')->set('preco', 25.50)->where('id', '=', 1);
+        $builder->from('produtos')->set('preco', 25.50)->where('id', '=', 1);
         $this->assertEquals('UPDATE produtos SET preco = ? WHERE id = ?', $builder->getSql());
         $this->assertEquals([25.50, 1], $builder->getBindings());
     }
@@ -21,7 +21,7 @@ class UpdateBuilderTest extends TestCase
     public function testUpdateMultipleColumnsWithWhere()
     {
         $builder = new UpdateBuilder();
-        $builder->table('usuarios')->set([
+        $builder->from('usuarios')->set([
             'nome' => 'Novo Nome',
             'email' => 'novo@email.com'
         ])->where('id', '=', 5);
@@ -32,7 +32,7 @@ class UpdateBuilderTest extends TestCase
     public function testUpdateAllRows()
     {
         $builder = new UpdateBuilder();
-        $builder->table('produtos')->set('estoque', 0);
+        $builder->from('produtos')->set('estoque', 0);
         $this->assertEquals('UPDATE produtos SET estoque = ?', $builder->getSql());
         $this->assertEquals([0], $builder->getBindings());
     }
@@ -40,7 +40,7 @@ class UpdateBuilderTest extends TestCase
     public function testUpdateWithWhereLike()
     {
         $builder = new UpdateBuilder();
-        $builder->table('clientes')->set('status', 'inativo')->where('nome', 'LIKE', 'João%');
+        $builder->from('clientes')->set('status', 'inativo')->where('nome', 'LIKE', 'João%');
         $this->assertEquals('UPDATE clientes SET status = ? WHERE nome LIKE ?', $builder->getSql());
         $this->assertEquals(['inativo', 'João%'], $builder->getBindings());
     }
@@ -48,7 +48,7 @@ class UpdateBuilderTest extends TestCase
     public function testUpdateWithWhereIn()
     {
         $builder = new UpdateBuilder();
-        $builder->table('pedidos')->set('pago', true)->whereIn('id', [101, 105, 107]);
+        $builder->from('pedidos')->set('pago', true)->whereIn('id', [101, 105, 107]);
         $this->assertEquals('UPDATE pedidos SET pago = ? WHERE id IN (?, ?, ?)', $builder->getSql());
         $this->assertEquals([true, 101, 105, 107], $builder->getBindings());
     }
@@ -56,7 +56,7 @@ class UpdateBuilderTest extends TestCase
     public function testUpdateWithCaseStatement()
     {
         $builder = new UpdateBuilder();
-        $builder->table('tarefas')
+        $builder->from('tarefas')
             ->set('prioridade', new \SimplePhp\SimpleCrud\Core\RawQueryBuilder(
                 "CASE WHEN data_vencimento < CURDATE() THEN 'Alta' ELSE 'Normal' END"
             ));
@@ -71,7 +71,7 @@ class UpdateBuilderTest extends TestCase
     public function testUpdateWithMathFunction()
     {
         $builder = new UpdateBuilder();
-        $builder->table('produtos')->set('preco', new \SimplePhp\SimpleCrud\Core\RawQueryBuilder('preco * 1.10'))
+        $builder->from('produtos')->set('preco', new \SimplePhp\SimpleCrud\Core\RawQueryBuilder('preco * 1.10'))
             ->where('categoria', '=', 'Eletrônicos');
         $this->assertEquals('UPDATE produtos SET preco = (preco * 1.10) WHERE categoria = ?', $builder->getSql());
         $this->assertEquals(['Eletrônicos'], $builder->getBindings());
@@ -80,7 +80,7 @@ class UpdateBuilderTest extends TestCase
     public function testUpdateWithJoinThrowsException()
     {
         $builder = new UpdateBuilder();
-        $builder->table('pedidos')
+        $builder->from('pedidos')
             ->join('clientes c', 'pedidos.cliente_id = c.id')
             ->set('status', 'cancelado')
             ->where('c.status', '=', 'banido');
@@ -100,7 +100,7 @@ class UpdateBuilderTest extends TestCase
         $sub->select('MAX(data_venda)')->from('vendas')->where('produto_id = produtos.id');
 
         $builder = new UpdateBuilder();
-        $builder->table('produtos')
+        $builder->from('produtos')
             ->set('ultima_venda', $sub)
             ->where('id', '=', 20);
 
@@ -114,7 +114,7 @@ class UpdateBuilderTest extends TestCase
     public function testUpdateWithNull()
     {
         $builder = new UpdateBuilder();
-        $builder->table('usuarios')->set('telefone', null)->where('id', '=', 15);
+        $builder->from('usuarios')->set('telefone', null)->where('id', '=', 15);
         $this->assertEquals('UPDATE usuarios SET telefone = ? WHERE id = ?', $builder->getSql());
         $this->assertEquals([null, 15], $builder->getBindings());
     }
@@ -122,7 +122,7 @@ class UpdateBuilderTest extends TestCase
     public function testUpdateWithEmptyString()
     {
         $builder = new UpdateBuilder();
-        $builder->table('produtos')
+        $builder->from('produtos')
             ->set('descricao', '')
             ->where('descricao IS null');
 
@@ -133,7 +133,7 @@ class UpdateBuilderTest extends TestCase
     public function testUpdateWithDateFunction()
     {
         $builder = new UpdateBuilder();
-        $builder->table('sessoes')
+        $builder->from('sessoes')
             ->set('ultimo_acesso', new \SimplePhp\SimpleCrud\Core\RawQueryBuilder('NOW()'))
             ->where('usuario_id', '=', 30);
 
