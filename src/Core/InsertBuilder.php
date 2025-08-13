@@ -29,7 +29,8 @@ class InsertBuilder implements BuilderInterface
     /**
      * Define os valores a serem inseridos.
      *
-     * @param array $rows Linhas de dados a serem inseridas. Ex: [['coluna1' => 'valor1', 'coluna2' => 'valor2'], ...]
+     * @param array $rows Linhas de dados a serem inseridas. 
+     * Ex: `[['coluna1' => 'valor1', 'coluna2' => 'valor2'], ...]`
      * @return void
      * @throws \RuntimeException Se não forem informadas linhas para o INSERT.
      * @throws \InvalidArgumentException Se o número de valores não bater com as colunas.

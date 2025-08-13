@@ -9,24 +9,22 @@ use SimplePhp\SimpleCrud\Contracts\ExecutableInterface;
 use SimplePhp\SimpleCrud\UseCases\QueryResult;
 
 /**
- * @method Wrapper from(string $table, ?string $alias = null)
- * @method Wrapper where(string $column, string $operator, mixed $value)
- * @method Wrapper andWhere(string $column, string $operator, mixed $value)
- * @method Wrapper orWhere(string $column, string $operator, mixed $value)
- * @method Wrapper orderBy(string $column, string $direction = 'ASC')
- * @method Wrapper limit(int $limit)
- * @method Wrapper offset(int $offset)
- * @method Wrapper join(string $table, string $first, string $operator, string $second)
- * @method Wrapper leftJoin(string $table, string $first, string $operator, string $second)
- * @method Wrapper rightJoin(string $table, string $first, string $operator, string $second)
- * @method Wrapper distinct()
- * @method Wrapper groupBy(string ...$columns)
- * @method Wrapper having(string $column, string $operator, mixed $value)
- * @method Wrapper insert(array $data)
- * @method Wrapper update(array $data)
- * @method Wrapper delete()
- * @method Wrapper values(array $rows)
+ * @method Wrapper from(string $table)
+ * @method Wrapper join(string $table, string $onCondition, string $type = 'INNER')
+ * @method Wrapper where($column, $operator = null, $value = null)
+ * @method Wrapper orWhere($column, $operator = null, $value = null)
+ * @method Wrapper whereIn(string $column, array|self $values)
+ * @method Wrapper orderBy($column, $direction = 'ASC')
+ * @method Wrapper limit(int $limit): static
+ * @method Wrapper offset(int $offset): static
  * @method Wrapper set(string|array $column, mixed $value = null)
+ * @method Wrapper values(array $rows)
+ * 
+ * @see QueryBuilder para detalhes completos sobre o uso do método.
+ * @see \SimplePhp\SimpleCrud\Core\SelectBuilder para métodos adicionais para SELECT.
+ * @see \SimplePhp\SimpleCrud\Core\DeleteBuilder para métodos adicionais para DELETE.
+ * @see \SimplePhp\SimpleCrud\Core\UpdateBuilder para métodos adicionais para UPDATE.
+ * 
  * @mixin BuilderInterface
  */
 class Wrapper
@@ -41,7 +39,7 @@ class Wrapper
      * Método mágico para chamar métodos do construtor de consultas SQL.
      * @param mixed $method método do construtor de consulta SQL (BuilderInterface)
      * @param mixed $args
-     * @return mixed
+     * @return Wrapper
      * @throws \BadMethodCallException
      */
     public function __call($method, $args): mixed
@@ -58,7 +56,7 @@ class Wrapper
      * Executa a consulta SQL construída e retorna o resultado.
      * @return QueryResult
      */
-    public function all(): QueryResult
+    public function execute(): QueryResult
     {
         return $this->executor->handle($this->builder);
     }
@@ -67,7 +65,7 @@ class Wrapper
      * Executa a consulta SQL construída utilizando bindvalue() e retorna o resultado.
      * @return QueryResult
      */
-    public function execute(): QueryResult
+    public function executeBind(): QueryResult
     {
         return $this->executor->execute($this->builder);
     }

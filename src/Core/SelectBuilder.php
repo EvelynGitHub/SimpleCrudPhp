@@ -31,10 +31,14 @@ class SelectBuilder extends QueryBuilder implements BuilderInterface
     }
 
 
+    /**
+     * Define a table usada no from do select
+     * @param string $table
+     * @return static
+     */
     public function from(string $table): static
     {
-        $this->table = $table;
-        return $this;
+        return parent::from($table);
     }
 
     /**

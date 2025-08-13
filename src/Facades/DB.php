@@ -92,6 +92,11 @@ class DB
         return self::$pdo->inTransaction();
     }
 
+    /**
+     * Constrói uma consulta Select
+     * @param array $columns
+     * @return Wrapper&SelectBuilder
+     */
     public static function select(array $columns): Wrapper
     {
         self::ensureConnected();
@@ -101,6 +106,11 @@ class DB
         );
     }
 
+    /**
+     * Insere dados na tabela especificada
+     * @param string $table
+     * @return Wrapper&InsertBuilder
+     */
     public static function insert(string $table): Wrapper
     {
         self::ensureConnected();
@@ -110,15 +120,25 @@ class DB
         );
     }
 
+    /**
+     * Atualiza dados na tabela especificada
+     * @param string $table
+     * @return Wrapper&UpdateBuilder
+     */
     public static function update(string $table): Wrapper
     {
         self::ensureConnected();
         return new Wrapper(
-            (new UpdateBuilder())->table($table),
+            (new UpdateBuilder())->from($table),
             new ExecuteQuery(self::$pdo)
         );
     }
 
+    /**
+     * Deleta dados na tabela especificada
+     * @param string $table
+     * @return Wrapper&DeleteBuilder
+     */
     public static function delete(string $table): Wrapper
     {
         self::ensureConnected();

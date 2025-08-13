@@ -20,6 +20,29 @@ abstract class QueryBuilder
     protected ?int $limit = null;
     protected ?int $offset = null;
 
+    /**
+     * Define a tabela principal para a consulta.
+     *
+     * @param string $table O nome da tabela.
+     * @return static Retorna a própria instância para encadeamento.
+     */
+    public function from(string $table): static
+    {
+        // if (isset($this->table)) {
+        //     throw new \BadMethodCallException("A tabela já foi definida e não pode ser alterada.");
+        // }
+        $this->table = $table;
+        return $this;
+    }
+
+    /**
+     * Adiciona uma cláusula JOIN à consulta.
+     *
+     * @param string $table A tabela com a qual você deseja fazer o JOIN.
+     * @param string $onCondition A condição para o JOIN, geralmente no formato "t1.coluna = t2.coluna".
+     * @param string $type O tipo de JOIN (INNER, LEFT, RIGHT, etc.). O valor padrão é 'INNER'.
+     * @return static Retorna a própria instância da classe para permitir o encadeamento de métodos.
+     */
     public function join(string $table, string $onCondition, string $type = 'INNER'): static
     {
         $this->joins[] = [
@@ -31,6 +54,32 @@ abstract class QueryBuilder
         return $this;
     }
 
+    /**
+     * Adiciona uma cláusula WHERE à consulta.
+     *
+     * Este método é extremamente versátil e suporta várias assinaturas:
+     *
+     * 1. Uso padrão: where('coluna', 'operador', 'valor')
+     * Ex: where('id', '=', 10)
+     *
+     * 2. Com operador '=' implícito: where('coluna', 'valor')
+     * Ex: where('nome', 'João') // equivalente a where('nome', '=', 'João')
+     *
+     * 3. Com um Closure para agrupamento de condições: where(function ($query) { ... })
+     * Ex: where(function ($q) {
+     *      $q->where('idade', '>', 18)->orWhere('status', 'ativo');
+     * })
+     *
+     * 4. Com um array associativo para múltiplas condições: where(['coluna' => 'valor', ...])
+     * Ex: where(['nome' => 'Maria', 'ativo' => true])
+     *
+     * 5. Com SQL bruto: where('id IS NOT NULL')
+     *
+     * @param string|Closure|array $column O nome coluna, um Closure para agrupamento ou um array de condições.
+     * @param string|mixed|null $operator O operador da comparação ou o valor para comparação direta.
+     * @param mixed|null $value O valor a ser comparado.
+     * @return $this Retorna a própria instância para permitir encadeamento de métodos.
+     */
     public function where($column, $operator = null, $value = null): static
     {
         return $this->addWhere('AND', $column, $operator, $value);
@@ -57,7 +106,7 @@ abstract class QueryBuilder
         return $this;
     }
 
-    protected function addWhere($boolean, $column, $operator = null, $value = null): static
+    private function addWhere($boolean, $column, $operator = null, $value = null): static
     {
         if ($column instanceof Closure) {
             $nested = new static();
@@ -93,7 +142,7 @@ abstract class QueryBuilder
         return $sql;
     }
 
-    protected function quote($value): string
+    private function quote($value): string
     {
         if ($value instanceof self) {
             $sql = $value->getSql();
@@ -105,7 +154,7 @@ abstract class QueryBuilder
         return '?';
     }
 
-    public function orderBy($column, $direction = 'ASC')
+    public function orderBy($column, $direction = 'ASC'): static
     {
         $this->orderBy[] = "$column $direction";
         return $this;

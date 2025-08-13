@@ -8,13 +8,21 @@ use SimplePhp\SimpleCrud\Contracts\BuilderInterface;
 
 class UpdateBuilder extends QueryBuilder implements BuilderInterface
 {
-    protected string $table;
     protected array $sets = [];
 
-    public function table(string $table): static
+    /**
+     * Define ou sobrescreve a tabela da qual os registros serão atualizados.
+     *
+     * É obrigatório definir a tabela para a consulta UPDATE.
+     * Este método sobrescreve qualquer tabela definida anteriormente.
+     * Por exemplo, ao usar `DB::update('t1')->from('t2')`, a tabela utilizada será 't2'.
+     *
+     * @param string $table A tabela a ser usada na cláusula UPDATE FROM.
+     * @return static
+     */
+    public function from(string $table): static
     {
-        $this->table = $table;
-        return $this;
+        return parent::from($table);
     }
 
     /**

@@ -8,12 +8,19 @@ use SimplePhp\SimpleCrud\Contracts\BuilderInterface;
 
 class DeleteBuilder extends QueryBuilder implements BuilderInterface
 {
-    protected string $table;
-
+    /**
+     * Define ou sobrescreve a tabela da qual os registros serão excluídos.
+     *
+     * É obrigatório definir a tabela para a consulta DELETE.
+     * Este método sobrescreve qualquer tabela definida anteriormente.
+     * Por exemplo, ao usar `DB::delete('t1')->from('t2')`, a tabela utilizada será 't2'.
+     *
+     * @param string $table A tabela a ser usada na cláusula DELETE FROM.
+     * @return static
+     */
     public function from(string $table): static
     {
-        $this->table = $table;
-        return $this;
+        return parent::from($table);
     }
 
     private function build(): string
