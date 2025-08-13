@@ -82,7 +82,7 @@ class InsertBuilder implements BuilderInterface
     }
 
 
-    public function build(): string
+    private function build(): string
     {
         if (empty($this->table) || empty($this->columns)) {
             throw new \RuntimeException("Obrigatório informar a tabela e as colunas para o INSERT.");

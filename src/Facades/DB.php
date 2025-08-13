@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SimplePhp\SimpleCrud\Facades;
 
 use PDO;
+use SimplePhp\SimpleCrud\Contracts\CustomQuery;
 use SimplePhp\SimpleCrud\Core\DeleteBuilder;
 use SimplePhp\SimpleCrud\Core\InsertBuilder;
 use SimplePhp\SimpleCrud\Core\RawQueryBuilder;
@@ -17,6 +18,7 @@ use SimplePhp\SimpleCrud\UseCases\ExecuteQuery;
 class DB
 {
     protected static ?PDO $pdo = null;
+    private static array $customQueries = [];
 
     private function __construct()
     {
@@ -81,6 +83,9 @@ class DB
         self::$pdo->rollBack();
     }
 
+    /** 
+     * Verifica se uma transação está atualmente ativa no driver.
+     */
     public static function inTransaction(): bool
     {
         self::ensureConnected();
@@ -126,7 +131,38 @@ class DB
     public static function query(string $sql, array $bindings = []): Wrapper
     {
         self::ensureConnected();
-        // return new RawQueryBuilder($sql, $bindings);
+        return new Wrapper(
+            new RawQueryBuilder($sql, $bindings),
+            new ExecuteQuery(self::$pdo)
+        );
+    }
+
+
+    public static function registerQuery(string $name, CustomQuery $queryInstance): void
+    {
+        self::$customQueries[$name] = $queryInstance;
+    }
+
+    /**
+     * Prepara a query customizada instanciada anteriormente em registerQuery()
+     * @param string $name Mesmo nome usado no registerQuery()
+     * @param array $params Dados que serão usados para bind
+     * @throws \Exception
+     * @return Wrapper
+     */
+    public function customQuery(string $name, array $params = []): Wrapper
+    {
+        if (!isset(self::$customQueries[$name])) {
+            throw new \Exception("Consulta '$name' não registrada.");
+        }
+
+        $queryInstance = clone self::$customQueries[$name]; // Clonamos para evitar alterar a instância global
+        $queryInstance->setParams($params);
+
+        $sql = $queryInstance->apply();
+        $bindings = $queryInstance->getParams();
+
+        self::ensureConnected();
         return new Wrapper(
             new RawQueryBuilder($sql, $bindings),
             new ExecuteQuery(self::$pdo)
