@@ -7,6 +7,7 @@ namespace SimplePhp\SimpleCrud\UseCases;
 use PDO;
 use SimplePhp\SimpleCrud\Contracts\BuilderInterface;
 use SimplePhp\SimpleCrud\Contracts\ExecutableInterface;
+use SimplePhp\SimpleCrud\Helpers\SQLUtils;
 
 class ExecuteQuery implements ExecutableInterface
 {
@@ -31,9 +32,11 @@ class ExecuteQuery implements ExecutableInterface
 
     public function execute(BuilderInterface $builder): QueryResult
     {
-        $stmt = $this->pdo->prepare($builder->getSql());
+        list($normalizedQuery, $normalizedBindings) = SQLUtils::normalizerPlaceholder($builder->getSql(), $builder->getBindings());
 
-        foreach ($builder->getBindings() as $key => $val) {
+        $stmt = $this->pdo->prepare($normalizedQuery);
+
+        foreach ($normalizedBindings as $key => $val) {
             if (is_string($key)) {
                 $stmt->bindValue(":$key", $val, $this->bindType($val));
             } else {

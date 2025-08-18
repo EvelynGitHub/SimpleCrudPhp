@@ -170,7 +170,7 @@ class DB
      * @throws \Exception
      * @return Wrapper
      */
-    public function customQuery(string $name, array $params = []): Wrapper
+    public static function customQuery(string $name, array $params = []): Wrapper
     {
         if (!isset(self::$customQueries[$name])) {
             throw new \Exception("Consulta '$name' não registrada.");

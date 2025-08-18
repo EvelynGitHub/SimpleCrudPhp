@@ -1,0 +1,58 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+use SimplePhp\SimpleCrud\Facades\Database;
+
+if (php_sapi_name() !== 'cli') {
+    die('Este script só pode ser executado via linha de comando');
+}
+
+$autoloadPaths = [
+    __DIR__ . '/vendor/autoload.php',
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../vendor/autoload.php',
+];
+
+$loaded = false;
+foreach ($autoloadPaths as $file) {
+    if (file_exists($file)) {
+        require $file;
+        $loaded = true;
+        break;
+    }
+}
+
+if (!$loaded) {
+    die('Não foi possível encontrar o autoload.php');
+}
+
+try {
+
+    if (count($argv) < 2) {
+        throw new \InvalidArgumentException("Comando não especificado");
+    }
+
+    $commandName = $argv[1];
+    $arguments = array_slice( $argv, 2);
+    $message = "";
+
+    switch ($commandName) {
+        case 'migrate':
+            $message = Database::executeOrCreateMigrate($arguments[0] ?? null);
+            break;
+        case 'migrate:rollback':
+            $steps = (int) $arguments[0] ?? 1;
+            $message = Database::executeMigrateRollback($steps);
+            break;
+        
+        default:
+            throw new \InvalidArgumentException("Comando inválido: {$commandName}");
+    }
+
+    echo "$message \n";
+} catch (\Exception $e) {
+    echo "Erro: " . $e->getMessage() . "\n";
+    exit(1);
+}
+    
