@@ -39,13 +39,16 @@ try {
 
     switch ($commandName) {
         case 'migrate':
+            Database::migration(__DIR__ . '/../examples/migrations', Database::FILE_SQL);
             $message = Database::executeOrCreateMigrate($arguments[0] ?? null);
             break;
         case 'migrate:rollback':
             $steps = (int) $arguments[0] ?? 1;
             $message = Database::executeMigrateRollback($steps);
             break;
-        
+        case 'seed':
+            $message = Database::executeOrCreateSeed($arguments[0] ?? null);
+            break;
         default:
             throw new \InvalidArgumentException("Comando inválido: {$commandName}");
     }

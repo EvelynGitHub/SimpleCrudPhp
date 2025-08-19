@@ -31,11 +31,11 @@ class InsertBuilder implements BuilderInterface
      *
      * @param array $rows Linhas de dados a serem inseridas. 
      * Ex: `[['coluna1' => 'valor1', 'coluna2' => 'valor2'], ...]`
-     * @return void
+     * @return static
      * @throws \RuntimeException Se não forem informadas linhas para o INSERT.
      * @throws \InvalidArgumentException Se o número de valores não bater com as colunas.
      */
-    public function values(array $rows): void
+    public function values(array $rows): static
     {
         if (empty($rows)) {
             throw new \RuntimeException("Obrigatório informar linhas para o INSERT.");
@@ -61,6 +61,7 @@ class InsertBuilder implements BuilderInterface
             $this->bindings = array_merge($this->bindings, array_values($row));
         }
 
+        return $this;
     }
 
     /**
@@ -68,9 +69,9 @@ class InsertBuilder implements BuilderInterface
      *
      * @param array $columns Colunas a serem inseridas. Ex: ['coluna1', 'coluna2']
      * @param BuilderInterface $data Subquery que retorna os dados a serem inseridos
-     * @return void
+     * @return static
      */
-    public function valuesWhitSelect(array $columns, BuilderInterface $data): void
+    public function valuesWhitSelect(array $columns, BuilderInterface $data): static
     {
         $this->columns = $columns;
 
@@ -80,6 +81,7 @@ class InsertBuilder implements BuilderInterface
 
         $this->subquery = $data->getSql();
         $this->bindings = array_merge($this->bindings, $data->getBindings());
+        return $this;
     }
 
 

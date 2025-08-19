@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace ExamplesPhp;
 
-use SimplePhp\SimpleCrud\Core\Interfaces\CustomQuery;
+use SimplePhp\SimpleCrud\Contracts\CustomQuery;
 
 
 class MyCustomQueryExample implements CustomQuery

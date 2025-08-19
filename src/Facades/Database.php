@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SimplePhp\SimpleCrud\Facades;
 
 use SimplePhp\SimpleCrud\UseCases\ExecuteMigrations;
+use SimplePhp\SimpleCrud\UseCases\ExecuteSeeds;
 
 class Database
 {
@@ -59,6 +60,80 @@ class Database
         self::$seedsExtension = $seedsExtension;
     }
 
+    public static function getSeedsPath(): string
+    {
+        return self::$seedsPath;
+    }
+
+    public static function getSeedsExtension(): string
+    {
+        return self::$seedsExtension;
+    }
+
+    /**
+     * Executa ou cria as seeds de acordo com o parâmetro `$arguments`.
+     * @param string|null $arguments Se vazio, executa todas as seeds pendentes.
+     *                              Se não vazio, cria uma nova seed com o nome especificado.
+     * @throws \InvalidArgumentException
+     * @throws \RuntimeException
+     * @return string
+     */
+    public static function executeOrCreateSeed(?string $arguments = null): string
+    {
+        if (empty($arguments)) {
+            $executor = new ExecuteSeeds();
+            $executor->handle(
+                self::$seedsPath,
+                self::$seedsExtension
+            );
+
+            return "Seeds executadas com sucesso!";
+        } else {
+            $name = $arguments;
+            $timestamp = date('Ymdhis');
+            $extension = self::$seedsExtension;
+            $filename = "{$timestamp}_{$name}.{$extension}";
+
+            $path = self::$seedsPath . '/' . $filename;
+
+            if (file_exists($path)) {
+                throw new \RuntimeException("Arquivo já existe: {$filename}");
+            }
+
+            $template = self::getSeedTemplate($name);
+            file_put_contents($path, $template);
+
+            return "Seed criada: {$filename}\n";
+        }
+    }
+
+    private static function getSeedTemplate(string $name): string
+    {
+        if (self::$seedsExtension === Database::FILE_PHP) {
+            return <<<PHP_TEMPLATE
+                <?php
+
+                declare(strict_types=1);
+
+                use SimplePhp\SimpleCrud\Facades\DB;
+
+                function seed(): void
+                {
+                    // Insira aqui o código para popular a tabela {$name}
+                    DB::insert('{$name}')->values([
+                        'coluna1' => 'valor1',
+                        'coluna2' => 'valor2'
+                    ])->execute();
+                }
+            PHP_TEMPLATE;
+        }
+
+        return <<<SQL
+            -- Insira aqui as instruções SQL para popular a tabela {$name}
+            INSERT INTO {$name} (coluna1, coluna2) VALUES ('valor1', 'valor2');
+        SQL;
+    }
+
     /**
      * Executa ou cria as migrations de acordo com o parâmetro `$arguments`.
      * @param string $arguments Se vazio, executa todas as migrations pendentes.
@@ -69,7 +144,7 @@ class Database
      * @throws \RuntimeException
      * @return string
      */
-    public static function executeOrCreateMigrate(string $arguments = null): string
+    public static function executeOrCreateMigrate(?string $arguments = null): string
     {
         if (empty($arguments)) {
             $executor = new ExecuteMigrations();
@@ -100,6 +175,7 @@ class Database
         }
     }
 
+    
     private static function getMigrationTemplate(string $name): string
     {
         if (self::$migrationsExtension === Database::FILE_PHP) {
@@ -142,7 +218,7 @@ class Database
 
         $executor = new ExecuteMigrations();
         $executor->rollback($steps);
-        
+
         return "Rollback de {$steps} migration(s) executado com sucesso!\n";
     }
 

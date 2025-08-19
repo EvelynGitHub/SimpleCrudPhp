@@ -9,6 +9,7 @@ use SimplePhp\SimpleCrud\Contracts\BuilderInterface;
 class SelectBuilder extends QueryBuilder implements BuilderInterface
 {
     protected string $alias;
+    protected array $groupBy = [];
 
     public function aliasSubQuery(string $name): void
     {
@@ -43,6 +44,12 @@ class SelectBuilder extends QueryBuilder implements BuilderInterface
         return parent::from($table);
     }
 
+    public function group(array $columns): static
+    {
+        $this->groupBy = $columns;
+        return $this;
+    }
+
     /**
      * 
      * SELECT [colunas]
@@ -70,6 +77,10 @@ class SelectBuilder extends QueryBuilder implements BuilderInterface
 
         if (!empty($this->wheres)) {
             $query .= ' WHERE ' . $this->compileWheres();
+        }
+
+        if (!empty($this->groupBy)) {
+            $query .= ' GROUP BY ' . implode(', ', $this->groupBy);
         }
 
         if (!empty($this->orderBy)) {

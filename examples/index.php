@@ -6,10 +6,8 @@ require __DIR__ . "/../vendor/autoload.php";
 
 
 use ExamplesPhp\MyCustomQueryExample;
-use SimplePhp\SimpleCrud\Core\Entity\QueryBuilder;
-use SimplePhp\SimpleCrud\Infra\Database\Crud;
-use SimplePhp\SimpleCrud\Infra\Database\Migrations;
-use SimplePhp\SimpleCrud\Infra\Database\Seeds;
+use SimplePhp\SimpleCrud\Facades\Database;
+use SimplePhp\SimpleCrud\Facades\DB;
 
 
 error_reporting(E_ALL);
@@ -18,26 +16,16 @@ ini_set('display_startup_errors', 1);
 
 echo '<pre>';
 
-// ### Executando as Migrations ###
+// ### Migrations e SEEDs ###
 
-Migrations::run(__DIR__ . '/migrations');
-echo '<hr/>';
-
-// ### Executando as Seeds ###
-Seeds::run(__DIR__ . '/seeds');
-echo '<hr/>';
-
-
-// ### Executando Consultas personalizadas ###
-// ## Registrando a consulta ##
-echo 'Query Customizada executada:';
-QueryBuilder::registerQuery('user_by_email', new MyCustomQueryExample());
-// Crud::registerQuery('user_by_email', new MyCustomQueryExample()); // Também funciona assim
-
-// ## Executando com parâmetro ##
-$result = Crud::customQuery('user_by_email', ['email' => 'email1@gmail.com'])->execute('fetch');
-
-print_r($result);
+// Definindo o caminho e extensão das migrations e seeds
+Database::migration(__DIR__ . '/migrations', Database::FILE_SQL);
+Database::seed(__DIR__ . '/seeds', Database::FILE_PHP);
+// Executando as migrations
+// Database::executeOrCreateMigrate("nome_tabela_nova"); // Criando migrations para a tabela "nome_tabela_nova"
+Database::executeOrCreateMigrate(); // Executando as migrations existentes
+// Executando as seeds
+Database::executeOrCreateSeed(); // Executando as seeds existentes
 
 
 // ### Executando INSERT ###
@@ -47,146 +35,135 @@ try {
 
     echo "Inserindo Fulano e retornando seu id: ";
 
-    $idFulano = Crud::insert("usuarios", [
-        "nome" => "Fulano",
+    $idFulano = DB::insert('usuarios')->values([
+        "nome" => "Fulano 2",
         "email" => "fulano@example.com",
-        "senha" => "fulano123",
-    ])->execute("lastId");
+        "senha" => "fulano123"
+    ])->execute()->lastInsertId;
 
     print_r($idFulano);
 
-} catch (\Throwable $th) {
-    echo $th->getMessage() . "<br>";
-}
+    echo '<hr/>';
+    // ### Executando Consultas personalizadas ###
+    echo 'Query Customizada executada:';
 
-// ### Executando INSERT Com SELECT###
-echo '<hr/>';
+    // ## Registrando a consulta customizada ##
+    DB::registerQuery('user_by_email', new MyCustomQueryExample());
+    // ## Executando com parâmetro ##
+    $result = DB::customQuery('user_by_email', ['email' => 'fulano@example.com'])->execute();
 
-try {
+    print_r($result->fetch);
+
+    // ### Executando INSERT Com SELECT###
+    echo '<hr/>';
+
+    // INSERINDO PRODUTO
+    echo "Inserindo PRODUTO";
+
+    $idProduto = DB::insert('produtos')->values([
+        "nome" => 'Monitor',
+        "descricao" => 'Monitor portátil',
+        "preco" => "800.00",
+        "estoque" => 2
+    ])->execute()->lastInsertId;
+
+    echo "Produto criado com ID: {$idProduto} <br>";
+
+    echo '<hr/>';
+
     // Primeiro preciso criar o pedido
+    echo "Inserindo o Novo PEDIDO: ";
 
-    echo "Inserindo os Novo do PEDIDO: ";
-    $selectNovoPedido = Crud::select("id_usuario, total")
-        ->from("pedidos")
-        ->where("id = :id", ["id" => 1]);
+    $idPedido = DB::insert('pedidos')->values([
+        "id_usuario" => $idFulano,
+        "data_pedido" => date('Y-m-d H:i:s'),
+        "total" => "200.00"
+    ])->execute()->lastInsertId;
 
-    $insertNovoPedido = Crud::insert("pedidos", $selectNovoPedido, "id_usuario, total")
-        ->execute("lastId");
+    echo "Pedido criado com ID: {$idPedido} <br>";
 
-    print_r($insertNovoPedido . "<br>");
+    echo '<hr/>';
 
-    // Depois insere os itens nesse pedido criado
-    echo "Inserindo os itens do pedido 1 no novo pedido: ";
+    echo "Inserindo os itens no pedido: ";
 
-    $querySelectInsert = Crud::select("(SELECT MAX(pedidos.id) from pedidos) as id_pedido, id_produto, quantidade, preco_unitario")
+    $idPItensedido = DB::insert('itens_pedido')->values([
+        "id_pedido" => $idPedido,
+        "id_produto" => $idProduto,
+        "quantidade" => 1,
+        "preco_unitario" => "200.00"
+    ])->execute()->lastInsertId;
+
+    echo "Item Pedido criado com ID: {$idPItensedido} <br>";
+
+    // $querySelectInsert = DB::select(["(SELECT MAX(pedidos.id) from pedidos) as id_pedido", "id_produto", "quantidade", "preco_unitario"])
+    //     ->from("itens_pedido")
+    //     ->join("pedidos", "pedidos.id = itens_pedido.id_pedido ")
+    //     ->where("id_pedido", 1)
+    //     ->group(["id_pedido", "id_produto", "quantidade", "preco_unitario"]);
+
+    // $insertPedido = DB::insert("itens_pedido")
+    //     ->valuesWhitSelect(
+    //         ["id_pedido", "id_produto", "quantidade", "preco_unitario"],
+    //         $querySelectInsert->getBuilder()
+    //     );
+
+    // print_r($insertPedido->getSql() . "<br>");
+    // print_r($insertPedido->execute()->fetch);
+
+    echo '<hr/>';
+
+    echo "Obtendo pedidos do Fulano: ";
+
+    $pedidos = DB::select(["pedidos.id", "produtos.nome", "quantidade", "preco_unitario"])
         ->from("itens_pedido")
+        ->join("produtos", "produtos.id = itens_pedido.id_produto")
         ->join("pedidos", "pedidos.id = itens_pedido.id_pedido ")
-        ->where("id_pedido = :id", ["id" => 1])
-        ->group(["id_pedido", "id_produto", "quantidade", "preco_unitario"]);
+        ->where("id_usuario", $idFulano)
+        ->group(["id_pedido", "id_produto", "quantidade", "preco_unitario"])
+        ->execute();
 
-    $insertPedido = Crud::insert("itens_pedido", $querySelectInsert, "id_pedido, id_produto, quantidade, preco_unitario");
+    print_r($pedidos->fetchAll);
 
-    print_r($insertPedido->getQuery() . "<br>");
-    print_r($insertPedido->execute("lastId"));
+    // ### Executando UPDATE ###
+    echo '<hr/>';
 
-} catch (\Throwable $th) {
-    echo $th->getMessage() . "<br>";
-}
+    echo "Editando Fulano ";
 
-// ### Executando UPDATE ###
-echo '<hr/>';
-
-try {
-
-    echo "Editando Fulano";
-
-    $crud = Crud::update(
-        "usuarios",
-        [
+    $crud = DB::update("usuarios")
+        ->set([
             "nome" => "Fulano de Tal"
-        ]
-    )
-        ->where("email = :email OR id = :id", [
+        ])
+        ->where([
             "email" => "fulano@example.com",
             "id" => $idFulano ?? null
-        ])->execute();
+        ])->execute()->rowCount;
 
     print_r($crud);
 
-} catch (\Throwable $th) {
-    echo $th->getMessage() . "<br>";
-}
-
-
-
-// ### Executando UPDATE ###
-echo '<hr/>';
-
-try {
-
-    echo " Selects <br> ";
-
-    echo "<p>----------------------------</p>";
-    echo "<p>-- Buscar todos os usuários</p>";
-
-    $select1 = Crud::select("*")->from("usuarios")->execute("fetchAll");
-    print_r($select1);
-
-    echo "<p>----------------------------</p>";
-    echo "<p>-- Buscar os itens de um pedido específico com detalhes dos produtos</p>";
-
-    $select2 = Crud::select("itens_pedido.id, produtos.nome, itens_pedido.quantidade, itens_pedido.preco_unitario")
-        ->from("itens_pedido")
-        ->join("produtos", "itens_pedido.id_produto = produtos.id")
-        ->where("itens_pedido.id_pedido = :id", ["id" => 1]);
-
-    print_r($select2->getQuery() . "<br>");
-    print_r($select2->execute("fetchAll"));
-
-    echo "<p>----------------------------</p>";
-    echo "<p>-- Buscar nomes de usuários que fizeram pedidos</p>";
-
-    // -- Sub-subquery: Pegar IDs dos produtos acima de um determinado valor
-    $subSubQuery = Crud::select("id")
-        ->from("produtos")
-        ->where("preco > ?", [1000]);
-
-    // -- Subquery: Pegar IDs dos pedidos que contêm esses produtos
-    $subQuery = Crud::select("DISTINCT id_pedido")
-        ->from("itens_pedido")
-        ->where("id_produto IN (?)", [$subSubQuery]);
-
-    // -- Query principal: Pegar os nomes dos usuários que fizeram esses pedidos
-    $query = Crud::select("nome")
-        ->from("usuarios")
-        ->where("id IN (?)", [
-            Crud::select("id_usuario")
-                ->from("pedidos")
-                ->where("id IN (?)", [$subQuery])
-        ]);
-
-    print_r($query->getQuery() . "<br>");
-    print_r($query->execute("fetch"));
-
-} catch (\Throwable $th) {
-    echo $th->getMessage() . "<br>";
-}
-
-
-// ### Executando DELETE ###
-echo '<hr/>';
-
-try {
+    // ### Executando DELETE ###
+    echo '<hr/>';
 
     echo "Deletando Fulano";
 
-    $delete = Crud::delete("usuarios")
-        ->where("email = :email OR id = :id", [
-            "email" => "fulano@example.com",
-            "id" => $idFulano ?? null
-        ])->execute();
+    $delete = DB::delete("usuarios")->execute();
 
-    print_r($delete);
+    echo '<hr/>';
+
+    echo "Deletando Item do Pedido";
+
+    $delete = DB::delete("itens_pedido")->execute();
+
+    echo '<hr/>';
+
+    echo "Deletando Pedidos";
+
+
+    $delete = DB::delete("pedidos")->execute();
+
+    echo '<hr/>';
+    echo "Deletando Produtos";
+
+    $delete = DB::delete(table: "produtos")->execute();
 
 } catch (\Throwable $th) {
     echo $th->getMessage() . "<br>";

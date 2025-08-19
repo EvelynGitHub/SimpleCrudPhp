@@ -15,10 +15,12 @@ use SimplePhp\SimpleCrud\UseCases\QueryResult;
  * @method Wrapper orWhere($column, $operator = null, $value = null)
  * @method Wrapper whereIn(string $column, array|self $values)
  * @method Wrapper orderBy($column, $direction = 'ASC')
+ * @method Wrapper group(array $columns)
  * @method Wrapper limit(int $limit): static
  * @method Wrapper offset(int $offset): static
  * @method Wrapper set(string|array $column, mixed $value = null)
  * @method Wrapper values(array $rows)
+ * @method Wrapper valuesWhitSelect(array $columns, BuilderInterface $data)
  * 
  * @see QueryBuilder para detalhes completos sobre o uso do método.
  * @see \SimplePhp\SimpleCrud\Core\SelectBuilder para métodos adicionais para SELECT.
@@ -33,6 +35,11 @@ class Wrapper
         private BuilderInterface $builder,
         private ExecutableInterface $executor
     ) {
+    }
+
+    public function getBuilder(): BuilderInterface
+    {
+        return $this->builder;
     }
 
     /**

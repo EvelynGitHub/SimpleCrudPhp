@@ -114,12 +114,6 @@ class ExecuteMigrations
         DB::query($sql)->execute();
     }
 
-    private function markAsExecuted(string $migrationFile): void
-    {
-        DB::insert(self::TABLE_NAME)
-            ->values(['migration' => $migrationFile])
-            ->execute();
-    }
 
     public function rollback(int $steps): void
     {
