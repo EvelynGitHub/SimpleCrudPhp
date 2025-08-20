@@ -15,7 +15,7 @@ class PDOFactoryTest extends TestCase
     public function testCreateFromEnvFallsBackToMemory()
     {
         putenv('DB_CONNECTION'); // limpa
-        putenv('DB_DATABASE');
+        putenv('DB_NAME');
         $pdo = PDOFactory::createFromEnv();
 
         $this->assertInstanceOf(\PDO::class, $pdo);
@@ -25,7 +25,7 @@ class PDOFactoryTest extends TestCase
     public function testCreateWithSQLite()
     {
         putenv('DB_CONNECTION=sqlite');
-        putenv('DB_DATABASE=:memory:');
+        putenv('DB_NAME=:memory:');
 
         $pdo = PDOFactory::createFromEnv();
         $this->assertEquals('sqlite', $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME));
@@ -34,7 +34,7 @@ class PDOFactoryTest extends TestCase
     public function testCreateWithInvalidConnectionThrows()
     {
         putenv('DB_CONNECTION=invalid');
-        putenv('DB_DATABASE=foo');
+        putenv('DB_NAME=foo');
         $this->expectException(\RuntimeException::class);
         PDOFactory::createFromEnv();
     }

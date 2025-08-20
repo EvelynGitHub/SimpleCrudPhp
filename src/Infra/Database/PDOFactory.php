@@ -20,7 +20,7 @@ class PDOFactory
         $driver = getenv('DB_CONNECTION') ?: 'sqlite';
         $host = getenv('DB_HOST') ?: 'localhost';
         $port = getenv('DB_PORT') ?: null;
-        $database = getenv('DB_DATABASE') ?: ':memory:';
+        $database = getenv('DB_NAME') ?: ':memory:';
         $username = getenv('DB_USERNAME') ?: null;
         $password = getenv('DB_PASSWORD') ?: null;
         $charset = getenv('DB_CHARSET') ?: 'utf8';
