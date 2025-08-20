@@ -37,9 +37,31 @@ try {
     $arguments = array_slice( $argv, 2);
     $message = "";
 
+
+    // Tenta carregar configurações do arquivo simplecrud.php
+    $configFile = __DIR__ . '/../simplecrud.php';
+    if (file_exists($configFile)) {
+        $config = require $configFile;
+    } else {
+        // Valores padrão caso não exista o arquivo de configuração
+        $config = [
+            'migrations' => [
+                'path' => __DIR__ . '/../examples/migrations',
+                'extension' => 'sql',
+            ],
+            'seeds' => [
+                'path' => __DIR__ . '/../examples/seeds',
+                'extension' => 'php',
+            ],
+        ];
+    }
+
+    // Configura os caminhos e extensões
+    Database::migration($config['migrations']['path'], $config['migrations']['extension']);
+    Database::seed($config['seeds']['path'], $config['seeds']['extension']);
+
     switch ($commandName) {
         case 'migrate':
-            Database::migration(__DIR__ . '/../examples/migrations', Database::FILE_SQL);
             $message = Database::executeOrCreateMigrate($arguments[0] ?? null);
             break;
         case 'migrate:rollback':
