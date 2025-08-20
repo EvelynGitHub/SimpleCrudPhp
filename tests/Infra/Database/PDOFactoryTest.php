@@ -1,0 +1,41 @@
+<?php
+
+declare(strict_types=1);
+
+namespace SimplePhp\SimpleCrud\Tests\Infra\Database;
+
+use PHPUnit\Framework\TestCase;
+use SimplePhp\SimpleCrud\Infra\Database\PDOFactory;
+
+class PDOFactoryTest extends TestCase
+{
+    /**
+     * @expectedWarningMessage [SimpleCrud] Usando SQLite em memória como fallback. Configure seu .env para produção.
+     */
+    public function testCreateFromEnvFallsBackToMemory()
+    {
+        putenv('DB_CONNECTION'); // limpa
+        putenv('DB_NAME');
+        $pdo = PDOFactory::createFromEnv();
+
+        $this->assertInstanceOf(\PDO::class, $pdo);
+        $this->assertEquals('sqlite', $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME));
+    }
+
+    public function testCreateWithSQLite()
+    {
+        putenv('DB_CONNECTION=sqlite');
+        putenv('DB_NAME=:memory:');
+
+        $pdo = PDOFactory::createFromEnv();
+        $this->assertEquals('sqlite', $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME));
+    }
+
+    public function testCreateWithInvalidConnectionThrows()
+    {
+        putenv('DB_CONNECTION=invalid');
+        putenv('DB_NAME=foo');
+        $this->expectException(\RuntimeException::class);
+        PDOFactory::createFromEnv();
+    }
+}

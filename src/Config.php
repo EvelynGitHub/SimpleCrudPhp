@@ -1,16 +1,13 @@
 <?php
 
-define("DATABASE", [
-    "driver" => getenv("DB_DRIVE"),
-    "host" => getenv("DB_HOST"),
-    "port" => getenv("DB_PORT"),
-    "dbname" => getenv("DB_NAME"),
-    "username" => getenv("DB_USER_NAME"),
-    "passwd" => getenv("DB_USER_PASSWD"),
-    "options" => [
-        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8",
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,
-        PDO::ATTR_CASE => PDO::CASE_NATURAL
-    ]
-]);
+require __DIR__ . '/../vendor/autoload.php';
+
+// $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+// $dotenv->safeLoad(); // carrega .env, mas não quebra se não existir
+
+if (!function_exists('base_path')) {
+    function base_path(string $path = ''): string
+    {
+        return rtrim(__DIR__ . '/..', '/') . ($path ? '/' . ltrim($path, '/') : '');
+    }
+}
