@@ -46,14 +46,14 @@ class DB
                 'driver' => $driver,
                 'dsn' => self::$pdo->getAttribute(PDO::ATTR_CONNECTION_STATUS) ?? 'N/A',
                 'version' => self::$pdo->getAttribute(PDO::ATTR_SERVER_VERSION) ?? 'N/A',
-                'database' => getenv('DB_DATABASE') ?? 'desconhecido',
+                'database' => getenv('DB_NAME') ?? 'desconhecido',
             ];
         } catch (\Throwable $e) {
             return [
                 'status' => 'erro',
                 'erro' => $e->getMessage(),
                 'driver' => getenv('DB_CONNECTION') ?? 'não configurado',
-                'banco' => getenv('DB_DATABASE') ?? 'desconhecido',
+                'banco' => getenv('DB_NAME') ?? 'desconhecido',
             ];
         }
     }
